@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<!-- ビューポート設定: スマホ等での表示倍率を制御 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>stylish block breaker</title>
+<style>
+    /* ==========================================================================
+       1. デザイン設定 (CSS変数)
+       ========================================================================== */
+    :root {
+        /* ライトモード用カラー */
+        --bg-color: #f2f2f7;
+        --card-bg: #ffffff;
+        --text-color: #1c1c1e;
+        --btn-primary-bg: #1c1c1e;
+        --btn-primary-text: #ffffff;
+        --input-bg: #e5e5ea;
+        --input-border: #d1d1d6;
+        --accent-color: #8e8e93;
+        --highlight-color: #007aff;
+        --danger-color: #ff3b30;    /* ゲームオーバー、ライフ等 */
+        --success-color: #34c759;   /* クリア等) */
+        --shadow-color: rgba(0, 0, 0, 0.1);
+        --tooltip-bg: rgba(40, 40, 40, 0.95);
+        --tooltip-text: #ffffff;
+        --font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+    }
+
+    /* ダークモード用カラー */
+    body.dark {
+        --bg-color: #1c1c1e;
+        --card-bg: #2c2c2e;
+        --text-color: #f2f2f7;
+        --input-bg: #151515;
+        --input-border: #3a3a3c;
+        --btn-primary-bg: #e5e5ea;
+        --btn-primary-text: #1c1c1e;
+        --accent-color: #d1d1d6;
+        --highlight-color: #0a84ff;
+        --danger-color: #ff453a;
+        --shadow-color: rgba(0, 0, 0, 0.5);
+        --tooltip-bg: rgba(240, 240, 240, 0.95);
+        --tooltip-text: #1c1c1e;
+    }
+
+    /* ==========================================================================
+       2. 基本レイアウト
+       ========================================================================== */
+    body {
+        font-family: var(--font-family);
+        background: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        overflow: hidden;
+        transition: background 0.3s, color 0.3s;
+        user-select: none;
+        touch-action: none;
+    }
+
+    /* ゲーム画面の外枠 */
+    .game-container {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        background: #000;
+        box-shadow: 0 10px 30px var(--shadow-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: height 0.3s ease;
+        border: 4px solid transparent; 
+        box-sizing: border-box;
+        cursor: pointer;
+    }
+
+    /* ファイルドラッグ時のスタイル */
+    .game-container.drag-over {
+        border-color: var(--highlight-color);
+        opacity: 0.8;
+    }
+
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: none; /* ゲーム中はカーソルを隠す */
+    }
+
+    /* ==========================================================================
+       3. UIオーバーレイ (スコア、メッセージ等)
+       ========================================================================== */
+    .ui-layer {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 20px;
+        box-sizing: border-box;
+        z-index: 10;
+    }
+
+    .header-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 20px;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.3);
+        padding: 5px 15px;
+        border-radius: 20px;
+    }
+
+    .screen-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+        backdrop-filter: blur(4px);
+        transition: opacity 0.3s;
+        pointer-events: none;
+        color: #fff;
+    }
+    .screen-overlay.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+
+    /* テキストスタイル */
+    h1 { font-size: 48px; margin: 0 0 10px 0; letter-spacing: 0.05em; pointer-events: none; }
+    p.sub-text { font-size: 18px; opacity: 0.8; margin-bottom: 30px; pointer-events: none; }
+    .blink { animation: blink 1.5s infinite; }
+    @keyframes blink { 50% { opacity: 0.5; } }
+
+    /* ==========================================================================
+       4. コントロールボタンエリア
+       ========================================================================== */
+    .controls-area {
+        margin-top: 20px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+        max-width: 800px;
+    }
+
+    button, .file-label {
+        font-size: 14px; font-weight: 600;
+        display: inline-flex; align-items: center; justify-content: center;
+        height: 40px; padding: 0 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: var(--card-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        text-decoration: none;
+    }
+    button:hover, .file-label:hover { transform: translateY(-1px); opacity: 0.9; }
+    button:active { transform: translateY(1px); }
+
+    .fixed-btn {
+        position: fixed; top: 15px; right: 15px;
+        width: 44px; height: 44px; padding: 0;
+        border-radius: 50%;
+        z-index: 100;
+        pointer-events: auto;
+    }
+    #muteBtn { right: 70px; }
+    .fixed-btn svg { width: 22px; height: 22px; fill: currentColor; }
+    #muteBtn.muted svg path.sound-wave { display: none; }
+    #muteBtn.muted .mute-x { display: block; }
+
+    /* 通知トースト */
+    .toast-notification {
+        position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+        background: var(--tooltip-bg); color: var(--tooltip-text);
+        padding: 8px 20px; border-radius: 30px;
+        font-size: 14px; font-weight: 600;
+        opacity: 0; pointer-events: none; z-index: 20000;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    #bgInput { display: none; }
+    
+    /* 発射メッセージ ("CLICK TO LAUNCH") */
+    #launchMessage {
+        position: absolute; 
+        bottom: 80px; 
+        left: 0;
+        width: 100%; text-align: center;
+        color: #fff; font-size: 14px; font-weight: bold; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        pointer-events: none; opacity: 0; transition: opacity 0.3s;
+        z-index: 20;
+    }
+    #launchMessage.visible { opacity: 1; animation: blink 1.5s infinite; }
+
+</style>
+</head>
+
+<!-- ▼▼▼ ここで背景画像を設定できます (例: data-game-bg="画像のURL") ▼▼▼ -->
+<body class="dark" data-game-bg="https://play-lh.googleusercontent.com/1-hPxafOxdYpYZEOKzNIkSP43HXCNftVJVttoo4ucl7rsMASXW3Xr6GlXURCubE1tA=w3840-h2160-rw"> 
+
+<!-- 右上の固定ボタン -->
+<button id="muteBtn" class="fixed-btn" aria-label="ミュート">
+    <svg viewBox="0 0 24 24">
+        <path d="M3 9v6h4l5 5V4L7 9H3z"/>
+        <path class="sound-wave" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        <g class="mute-x" style="display:none">
+             <path d="M16 16l4-4m0 0l-4-4m4 4l-4 4m4-4l-4-4" stroke="currentColor" stroke-width="2" />
+        </g>
+    </svg>
+</button>
+<button id="darkModeBtn" class="fixed-btn" aria-label="ダークモード切替">
+    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c4.97 0 9-4.03 9-9a9 9 0 0 0-9-9z"/></svg>
+</button>
+
+<!-- ゲームエリア -->
+<div class="game-container" id="gameContainer">
+    <canvas id="gameCanvas"></canvas>
+    
+    <!-- UIレイヤー: スコア、ライフ、メッセージ -->
+    <div class="ui-layer">
+        <div class="header-info">
+            <span id="scoreDisplay">SCORE: 0</span>
+            <span id="livesDisplay"><span style="color: var(--danger-color)">♥</span>: 3</span>
+        </div>
+        <div id="launchMessage">CLICK TO LAUNCH</div>
+    </div>
+
+    <!-- スタート画面 -->
+    <div id="startScreen" class="screen-overlay">
+        <h1>BLOCK BREAKER</h1>
+        <p class="sub-text blink">Click Anywhere to Start</p>
+    </div>
+
+    <!-- ゲームオーバー画面 -->
+    <div id="endScreen" class="screen-overlay hidden">
+        <h1 id="endTitle">GAME OVER</h1>
+        <p class="sub-text" id="endScore">Score: 0</p>
+        <p class="sub-text blink">Click Anywhere to Retry</p>
+    </div>
+</div>
+
+<!-- 下部コントロールエリア -->
+<div class="controls-area">
+    <label for="bgInput" class="file-label">
+        背景画像を変更
+        <input type="file" id="bgInput" accept="image/*">
+    </label>
+    <button id="resetBgBtn">↻ 背景リセット</button>
+</div>
+
+<script>
+/**
+ * Stylish Block Breaker v23 - HTML Background Config
+ * 設定値は以下の CONFIG オブジェクトで一元管理
+ */
+
+const CONFIG = {
+    // === 基本設定 ===
+    baseWidth: 800,           // ゲームの基本幅 (px)
+    safeZoneHeight: 150,      // 画面下部の黒いエリアの高さ (px)
+    defaultBg: '',            // デフォルト背景画像 (空欄の場合はHTMLの属性または黒背景)
+
+    // === パドル (自機) 設定 ===
+    paddle: { 
+        width: 60,            // 初期幅
+        height: 16,           // 高さ
+        color: '#fff',        // 色
+        bottomOffset: 30,     // 画面下端からの距離
+        highlightColor: '#007aff' // アイテム効果中の発光色 (青)
+    },
+
+    // === ボール設定 ===
+    ball: { 
+        radius: 6,            // 半径
+        color: '#fff',        // 色 (描画ロジック内で参照)
+        normalSpeed: 2.2,     // 通常速度 (遅め)
+        fastSpeed: 8,         // 高速速度 (アイテム効果中など)
+        smashSpeedMultiplier: 2.0 // スマッシュ時の速度倍率 (fastSpeed * 2.0)
+    }, 
+
+    // === ブロック設定 ===
+    blocks: { 
+        cols: 32,             // 横の列数
+        rowHeight: 12,        // ブロックの基本高さ
+        padding: 0,           // ブロック間の隙間
+        offsetTop: 0,         // 上部の余白
+        opacity: 0.8          // 描画時の透明度
+    },
+    // ブロックの色リスト (上から順に使用され以下ループ)
+    colors: [
+        '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0', 
+        '#a0a0a0', '#909090', '#808080', '#707070', '#606060'
+    ],
+
+    // === アイテム設定 ===
+    items: {
+        probability: 0.05,    // 出現確率 (0.0 ～ 1.0)
+        dropSpeed: 0.5,       // 落下速度 (ゆっくり)
+        types: [
+            { type: 'speedup', color: '#007aff', text: 'SPEED UP (3s)' },
+            { type: 'multiball', color: '#ff9500', text: 'MULTI BALL' },
+            { type: 'expand', color: '#34c759', text: 'WIDTH x2' },
+            { type: 'shrink', color: '#ff3b30', text: 'WIDTH 1/2' },
+            { type: 'lifeup', color: '#ff2d55', text: 'EXTRA LIFE' } 
+        ]
+    },
+
+    // === 表示テキスト設定 ===
+    text: {
+        score: "SCORE:",
+        launch: "CLICK TO LAUNCH",
+        gameOver: "GAME OVER",
+        gameWin: "ALL CLEARED!",
+        bgChanged: "背景画像を変更しました",
+        bgReset: "背景をリセットしました"
+    }
+};
+
+// ==========================================================================
+// サウンド管理 (SoundManager)
+// ==========================================================================
+const SoundManager = {
+    ctx: null,
+    isMuted: false,
+
+    // 初期化
+    init() {
+        if (!this.ctx) {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.ctx = new AudioContext();
+            } catch(e) {}
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    },
+
+    // ミュート切り替え
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        document.getElementById('muteBtn').classList.toggle('muted', this.isMuted);
+    },
+
+    // 音の再生
+    play(type) {
+        if (this.isMuted || !this.ctx) return;
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        // 音色の設定
+        if (type === 'launch') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(440, t);
+            osc.frequency.linearRampToValueAtTime(880, t + 0.1);
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.linearRampToValueAtTime(0, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
+        } else if (type === 'smash') { // スマッシュ音 (重い音)
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, t);
+            osc.frequency.exponentialRampToValueAtTime(40, t + 0.2);
+            gain.gain.setValueAtTime(0.3, t);
+            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
+        } else if (type === 'hit') { // 壁・パドルヒット
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, t);
+            osc.frequency.exponentialRampToValueAtTime(300, t + 0.1);
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.linearRampToValueAtTime(0, t + 0.1);
+            osc.start(t); osc.stop(t + 0.1);
+        } else if (type === 'block') { // ブロック破壊
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800 + Math.random()*200, t);
+            gain.gain.setValueAtTime(0.03, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+            osc.start(t); osc.stop(t + 0.08);
+        } else if (type === 'item') { // アイテム取得
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(1200, t);
+            osc.frequency.linearRampToValueAtTime(1800, t + 0.1);
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.linearRampToValueAtTime(0, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
+        } else if (type === 'die') { // ミス
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, t);
+            osc.frequency.exponentialRampToValueAtTime(50, t + 0.3);
+            gain.gain.setValueAtTime(0.1, t);
+            gain.gain.linearRampToValueAtTime(0, t + 0.3);
+            osc.start(t); osc.stop(t + 0.3);
+        }
+    }
+};
+
+// ==========================================================================
+// ゲームクラス (Game)
+// ==========================================================================
+class Game {
+    constructor() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.canvas.width = CONFIG.baseWidth;
+        this.canvas.height = 600; 
+        
+        this.state = 'MENU'; // MENU, PLAYING, GAMEOVER, WIN
+        this.score = 0;
+        this.lives = 3;
+        
+        // パドル、ボール、ブロック等の管理配列
+        this.paddle = { x: 0, width: CONFIG.paddle.width };
+        this.balls = [];
+        this.blocks = [];
+        this.items = [];
+        this.particles = [];
+        this.speedUpEndTime = 0;
+        
+        // パドルプッシュ・演出用
+        this.pushTimer = 0;
+        this.pushMax = 10;
+        this.shakeTime = 0;
+
+        // 背景画像 (HTML属性優先)
+        this.bgImage = new Image();
+        this.bgImage.crossOrigin = "anonymous";
+        
+        // HTMLの属性からURLを取得
+        const htmlBg = document.body.getAttribute('data-game-bg');
+        const bgUrl = htmlBg || CONFIG.defaultBg;
+
+        if (bgUrl) {
+            this.bgImage.onload = () => this.resizeAndReset();
+            this.bgImage.src = bgUrl;
+        } else {
+            // 画像がない場合は即座に初期化
+            this.resizeAndReset();
+        }
+
+        this.initInput();
+        
+        // ゲームループ開始
+        const loop = () => {
+            this.update();
+            this.draw();
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    }
+
+    // キャンバスのリサイズと初期化
+    resizeAndReset() {
+        let imageHeight;
+        
+        // 画像がロードされている場合
+        if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth) {
+            const aspect = this.bgImage.naturalHeight / this.bgImage.naturalWidth;
+            imageHeight = Math.floor(CONFIG.baseWidth * aspect);
+        } else {
+            // 画像がない場合のデフォルト高さ
+            imageHeight = 600; 
+        }
+
+        const totalHeight = imageHeight + CONFIG.safeZoneHeight;
+        
+        this.canvas.width = CONFIG.baseWidth;
+        this.canvas.height = totalHeight;
+        
+        const container = document.getElementById('gameContainer');
+        container.style.aspectRatio = `${CONFIG.baseWidth}/${totalHeight}`;
+        
+        if (this.state !== 'MENU') {
+            this.resetGame(); 
+            this.state = 'PLAYING'; 
+            document.getElementById('endScreen').classList.add('hidden'); 
+        } else {
+            this.resetLevel();
+        }
+        
+        this.draw();
+    }
+
+    // 入力イベントの設定
+    initInput() {
+        const container = document.getElementById('gameContainer');
+
+        const movePaddle = (clientX) => {
+            const rect = this.canvas.getBoundingClientRect();
+            if (rect.width === 0) return;
+            const scaleX = this.canvas.width / rect.width;
+            let x = (clientX - rect.left) * scaleX;
+            this.paddle.x = x - this.paddle.width / 2;
+        };
+
+        window.addEventListener('mousemove', (e) => movePaddle(e.clientX));
+        
+        this.canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            movePaddle(e.touches[0].clientX);
+        }, { passive: false });
+
+        const handleClick = (e) => {
+            SoundManager.init();
+
+            if (this.state === 'MENU' || this.state === 'GAMEOVER' || this.state === 'WIN') {
+                this.startGame();
+            } else if (this.state === 'PLAYING') {
+                const attachedBall = this.balls.find(b => b.isAttached);
+                if (attachedBall) {
+                    this.tryLaunch();
+                } else {
+                    // パドルプッシュ発動
+                    if (this.pushTimer === 0) this.pushTimer = this.pushMax;
+                }
+            }
+        };
+
+        container.addEventListener('mousedown', handleClick);
+        container.addEventListener('touchstart', (e) => {
+            handleClick(e);
+        });
+
+        document.getElementById('bgInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) this.loadBackground(file);
+        });
+
+        this.setupDragAndDrop(container);
+    }
+
+    // D&Dによる背景変更
+    setupDragAndDrop(element) {
+        element.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            element.classList.add('drag-over');
+        });
+
+        element.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            element.classList.remove('drag-over');
+        });
+
+        element.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            element.classList.remove('drag-over');
+            
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                this.loadBackground(file);
+            }
+        });
+    }
+
+    loadBackground(file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            // 画像ロードイベントを再設定
+            this.bgImage.onload = () => this.resizeAndReset();
+            this.bgImage.src = ev.target.result;
+            showToast(CONFIG.text.bgChanged);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    startGame() {
+        this.resetGame();
+        this.state = 'PLAYING';
+        
+        document.getElementById('startScreen').classList.add('hidden');
+        document.getElementById('endScreen').classList.add('hidden');
+        this.canvas.style.cursor = 'none';
+    }
+
+    tryLaunch() {
+        const attachedBall = this.balls.find(b => b.isAttached);
+        if (attachedBall) {
+            attachedBall.isAttached = false;
+            // 発射角をランダムに少しばらつかせる
+            const angle = -Math.PI / 2 + (Math.random() * 0.5 - 0.25);
+            const speed = this.getCurrentTargetSpeed();
+            attachedBall.dx = speed * Math.cos(angle);
+            attachedBall.dy = speed * Math.sin(angle);
+            SoundManager.play('launch');
+            document.getElementById('launchMessage').classList.remove('visible');
+        }
+    }
+
+    resetGame() {
+        this.score = 0;
+        this.lives = 3;
+        this.speedUpEndTime = 0;
+        this.pushTimer = 0;
+        this.shakeTime = 0;
+        this.resetLevel();
+        this.updateUI();
+    }
+
+    resetLevel() {
+        this.paddle.width = CONFIG.paddle.width; 
+        this.paddle.x = (this.canvas.width - this.paddle.width) / 2;
+        this.items = [];
+        this.particles = [];
+        this.spawnBall(true); 
+        this.createBlocks();
+    }
+
+    spawnBall(attached = false) {
+        this.balls = [{
+            x: this.canvas.width / 2,
+            y: this.canvas.height - 40,
+            dx: 0, dy: 0,
+            radius: CONFIG.ball.radius,
+            active: true,
+            isAttached: attached,
+            isSmashing: false,
+            trail: [] // 残像用座標履歴
+        }];
+        if (attached) {
+            document.getElementById('launchMessage').textContent = CONFIG.text.launch;
+            document.getElementById('launchMessage').classList.add('visible');
+        }
+    }
+
+    createBlocks() {
+        this.blocks = [];
+        const bW = this.canvas.width / CONFIG.blocks.cols;
+        const imageAreaHeight = this.canvas.height - CONFIG.safeZoneHeight;
+        if (imageAreaHeight <= 0) return; 
+
+        const rows = Math.floor(imageAreaHeight / CONFIG.blocks.rowHeight); 
+        const bH = imageAreaHeight / rows;
+
+        for(let r = 0; r < rows; r++) {
+            const colorIndex = Math.floor((r / rows) * CONFIG.colors.length);
+            const color = CONFIG.colors[colorIndex % CONFIG.colors.length];
+            for(let c = 0; c < CONFIG.blocks.cols; c++) {
+                this.blocks.push({
+                    x: c * bW, y: CONFIG.blocks.offsetTop + r * bH,
+                    w: bW, h: bH,
+                    color: color, active: true
+                });
+            }
+        }
+    }
+
+    // 現在のターゲット速度を取得 (アイテム効果中は高速化)
+    getCurrentTargetSpeed() {
+        return (Date.now() < this.speedUpEndTime) ? CONFIG.ball.fastSpeed : CONFIG.ball.normalSpeed;
+    }
+
+    // ボール速度の正規化 (スマッシュ解除)
+    normalizeBallSpeed(ball) {
+        const angle = Math.atan2(ball.dy, ball.dx);
+        const speed = this.getCurrentTargetSpeed();
+        ball.dx = speed * Math.cos(angle);
+        ball.dy = speed * Math.sin(angle);
+        ball.isSmashing = false;
+    }
+
+    // === 更新処理 (毎フレーム実行) ===
+    update() {
+        if (this.state !== 'PLAYING') return;
+
+        // タイマー減算
+        if (this.pushTimer > 0) this.pushTimer--;
+        if (this.shakeTime > 0) this.shakeTime--;
+
+        // パドルのアニメーションオフセット (プッシュ時)
+        const pushOffset = (this.pushTimer > 0) ? Math.sin((this.pushTimer / this.pushMax) * Math.PI) * 12 : 0;
+        const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset - pushOffset;
+
+        // パドル範囲制限
+        if (this.paddle.x < 0) this.paddle.x = 0;
+        if (this.paddle.x + this.paddle.width > this.canvas.width) this.paddle.x = this.canvas.width - this.paddle.width;
+
+        let activeBalls = 0;
+        const targetSpeed = this.getCurrentTargetSpeed();
+
+        this.balls.forEach(ball => {
+            if (!ball.active) return;
+            activeBalls++;
+
+            // ボールがパドルにくっついている場合
+            if (ball.isAttached) {
+                ball.x = this.paddle.x + this.paddle.width / 2;
+                ball.y = paddleTop - ball.radius - 2;
+                return;
+            }
+
+            // トレイル更新 (スマッシュ時のみ)
+            if (ball.isSmashing) {
+                ball.trail.push({ x: ball.x, y: ball.y });
+                if (ball.trail.length > 8) ball.trail.shift();
+            } else {
+                ball.trail = [];
+            }
+
+            // 速度制御
+            const currentSpeed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+            if (!ball.isSmashing && currentSpeed > 0) {
+                // 通常時: ターゲット速度に合わせる
+                const scale = targetSpeed / currentSpeed;
+                ball.dx *= scale; ball.dy *= scale;
+            } else if (ball.isSmashing && currentSpeed < CONFIG.ball.fastSpeed * 1.5) {
+                // スマッシュ中かつ遅すぎる場合: 最低速度を保証
+                const s = (CONFIG.ball.fastSpeed * 1.5) / currentSpeed;
+                ball.dx *= s; ball.dy *= s;
+            }
+
+            // 位置更新
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            // 壁衝突判定
+            let wallHit = false;
+            if (ball.x < ball.radius) {
+                ball.x = ball.radius; ball.dx = Math.abs(ball.dx);
+                wallHit = true;
+            } else if (ball.x > this.canvas.width - ball.radius) {
+                ball.x = this.canvas.width - ball.radius; ball.dx = -Math.abs(ball.dx);
+                wallHit = true;
+            }
+            if (ball.y < ball.radius) {
+                ball.y = ball.radius; ball.dy = Math.abs(ball.dy);
+                wallHit = true;
+            }
+            if (wallHit) {
+                SoundManager.play('hit');
+                // スマッシュ状態で壁に当たったら速度を戻す
+                if (ball.isSmashing) this.normalizeBallSpeed(ball);
+            }
+
+            // パドル衝突判定
+            if (ball.dy > 0 && 
+                ball.y + ball.radius >= paddleTop &&
+                ball.y - ball.radius <= paddleTop + CONFIG.paddle.height + pushOffset &&
+                ball.x >= this.paddle.x && 
+                ball.x <= this.paddle.x + this.paddle.width) {
+                
+                // 衝突位置による反射角の変化 (-1.0:左端 ～ 1.0:右端)
+                let hitPoint = ball.x - (this.paddle.x + this.paddle.width / 2);
+                hitPoint = hitPoint / (this.paddle.width / 2);
+                const angle = hitPoint * (Math.PI / 3); // 最大60度
+
+                // スマッシュ判定 (プッシュ中か)
+                let speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+                if (this.pushTimer > 0) {
+                    ball.isSmashing = true; 
+                    speed = CONFIG.ball.fastSpeed * CONFIG.ball.smashSpeedMultiplier; 
+                    this.shakeTime = 10; // 画面を揺らす
+                    SoundManager.play('smash'); 
+                } else {
+                    ball.isSmashing = false;
+                    SoundManager.play('hit');
+                }
+
+                // 新しいベクトルを適用
+                ball.dx = speed * Math.sin(angle);
+                ball.dy = -speed * Math.cos(angle);
+                ball.y = paddleTop - ball.radius - 1; 
+            }
+
+            // 落下判定
+            if (ball.y > this.canvas.height) {
+                ball.active = false;
+            }
+
+            // ブロック衝突判定
+            for (let i = 0; i < this.blocks.length; i++) {
+                const block = this.blocks[i];
+                if (!block.active) continue;
+                
+                const bx = block.x;
+                const by = block.y;
+                const bw = block.w;
+                const bh = block.h;
+
+                if (ball.x + ball.radius > bx && ball.x - ball.radius < bx + bw && 
+                    ball.y + ball.radius > by && ball.y - ball.radius < by + bh) {
+                    
+                    block.active = false;
+                    this.score += 100;
+                    this.updateUI();
+                    SoundManager.play('block');
+                    this.createParticles(bx + bw/2, by + bh/2, block.color);
+                    
+                    // アイテムドロップ
+                    if (Math.random() < CONFIG.items.probability) {
+                        this.dropItem(bx + bw/2, by + bh/2);
+                    }
+
+                    // 反射処理
+                    const prevX = ball.x - ball.dx;
+                    if (prevX + ball.radius <= bx || prevX - ball.radius >= bx + bw) {
+                        ball.dx *= -1;
+                    } else {
+                        ball.dy *= -1;
+                    }
+
+                    // スマッシュ状態でブロック破壊したら速度を戻す
+                    if (ball.isSmashing) this.normalizeBallSpeed(ball);
+                    break;
+                }
+            }
+        });
+
+        // ライフ管理
+        if (activeBalls === 0) {
+            this.lives--;
+            this.updateUI();
+            SoundManager.play('die');
+            if (this.lives > 0) {
+                this.paddle.width = CONFIG.paddle.width; 
+                this.speedUpEndTime = 0; 
+                this.spawnBall(true); 
+            } else {
+                this.gameOver();
+            }
+        }
+
+        // アイテム更新
+        this.items.forEach((item, i) => {
+            item.y += CONFIG.items.dropSpeed; // 落下速度
+            if (item.y > paddleTop && item.y < paddleTop + CONFIG.paddle.height &&
+                item.x > this.paddle.x && item.x < this.paddle.x + this.paddle.width) {
+                this.activateItem(item);
+                this.items.splice(i, 1);
+            } else if (item.y > this.canvas.height) {
+                this.items.splice(i, 1);
+            }
+        });
+
+        // パーティクル更新
+        this.particles.forEach((p, i) => {
+            p.x += p.dx; p.y += p.dy; p.life -= 0.02;
+            if(p.life <= 0) this.particles.splice(i, 1);
+        });
+
+        // クリア判定
+        if (this.blocks.length > 0 && this.blocks.every(b => !b.active)) {
+            this.gameWin();
+        }
+    }
+
+    dropItem(x, y) {
+        const type = CONFIG.items.types[Math.floor(Math.random() * CONFIG.items.types.length)];
+        this.items.push({ x, y, ...type });
+    }
+
+    activateItem(item) {
+        SoundManager.play('item');
+        showToast(item.text);
+        switch(item.type) {
+            case 'speedup': 
+                this.speedUpEndTime = Date.now() + 3000;
+                break;
+            case 'multiball':
+                const activeBall = this.balls.find(b => b.active && !b.isAttached);
+                if (activeBall) {
+                    this.balls.push({ 
+                        x: activeBall.x, y: activeBall.y, dx: -activeBall.dx, dy: activeBall.dy, 
+                        radius: activeBall.radius, active: true, isAttached: false, isSmashing: activeBall.isSmashing, trail: [] 
+                    });
+                }
+                break;
+            case 'expand': 
+                this.paddle.width = Math.min(this.paddle.width * 2, CONFIG.paddle.width * 2); 
+                break;
+            case 'shrink': 
+                this.paddle.width = Math.max(this.paddle.width / 2, CONFIG.paddle.width * 0.5); 
+                break;
+            case 'lifeup': 
+                this.lives++;
+                this.updateUI();
+                break;
+        }
+    }
+
+    createParticles(x, y, color) {
+        for(let i=0; i<6; i++) {
+            this.particles.push({
+                x, y, dx: (Math.random()-0.5)*5, dy: (Math.random()-0.5)*5,
+                color: color, life: 1.0
+            });
+        }
+    }
+
+    // === 描画処理 ===
+    draw() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        this.ctx.save();
+        
+        // 画面揺れ (スマッシュ時)
+        if (this.shakeTime > 0) {
+            const dx = (Math.random() - 0.5) * 10;
+            const dy = (Math.random() - 0.5) * 10;
+            this.ctx.translate(dx, dy);
+        }
+
+        // 背景描画
+        if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth) {
+            const drawHeight = this.canvas.height - CONFIG.safeZoneHeight;
+            this.ctx.drawImage(this.bgImage, 0, 0, this.canvas.width, drawHeight);
+        }
+
+        // 下部黒塗りエリア
+        this.ctx.fillStyle = "#000000";
+        this.ctx.fillRect(0, this.canvas.height - CONFIG.safeZoneHeight, this.canvas.width, CONFIG.safeZoneHeight);
+
+        // ブロック
+        this.ctx.globalAlpha = CONFIG.blocks.opacity; 
+        this.blocks.forEach(b => {
+            if (b.active) {
+                this.ctx.fillStyle = b.color;
+                this.ctx.fillRect(b.x, b.y, b.w, b.h);
+                this.ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                this.ctx.lineWidth = 1;
+                this.ctx.strokeRect(b.x, b.y, b.w, b.h);
+            }
+        });
+        this.ctx.globalAlpha = 1.0; 
+
+        // パドル
+        const pushOffset = (this.pushTimer > 0) ? Math.sin((this.pushTimer / this.pushMax) * Math.PI) * 12 : 0;
+        const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset - pushOffset;
+        
+        this.ctx.fillStyle = CONFIG.paddle.color;
+        
+        if (Date.now() < this.speedUpEndTime) {
+            this.ctx.shadowBlur = 20;
+            this.ctx.shadowColor = CONFIG.paddle.highlightColor;
+        } else {
+            this.ctx.shadowBlur = 0;
+        }
+        
+        this.ctx.fillRect(this.paddle.x, paddleTop, this.paddle.width, CONFIG.paddle.height);
+        this.ctx.shadowBlur = 0; 
+
+        // ボール
+        this.balls.forEach(b => {
+            if(b.active) {
+                // 残像 (スマッシュ時)
+                if (b.isSmashing && b.trail.length > 0) {
+                    this.ctx.beginPath();
+                    b.trail.forEach((pos, index) => {
+                        if (index === 0) this.ctx.moveTo(pos.x, pos.y);
+                        else this.ctx.lineTo(pos.x, pos.y);
+                    });
+                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    this.ctx.lineWidth = b.radius * 2;
+                    this.ctx.lineCap = 'round';
+                    this.ctx.stroke();
+                }
+
+                // 本体
+                this.ctx.fillStyle = CONFIG.ball.color;
+                this.ctx.beginPath();
+                this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
+                this.ctx.fill();
+                
+                // フチ
+                this.ctx.strokeStyle = "rgba(0,0,0,0.8)";
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+            }
+        });
+
+        // アイテム
+        this.items.forEach(item => {
+            this.drawItemIcon(item.x, item.y, item.type, item.color);
+        });
+
+        // パーティクル
+        this.particles.forEach(p => {
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillStyle = p.color;
+            this.ctx.fillRect(p.x, p.y, 3, 3);
+        });
+        this.ctx.globalAlpha = 1.0;
+
+        this.ctx.restore();
+    }
+
+    // アイテムアイコン描画 (Canvas描画)
+    drawItemIcon(x, y, type, color) {
+        const r = 14; 
+        this.ctx.fillStyle = color;
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, r, 0, Math.PI * 2);
+        this.ctx.fill();
+        
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.fillStyle = '#fff';
+        this.ctx.lineWidth = 2;
+        this.ctx.lineCap = 'round';
+        this.ctx.lineJoin = 'round';
+        this.ctx.beginPath();
+
+        if (type === 'speedup') { 
+            this.ctx.moveTo(x + 2, y - 6);
+            this.ctx.lineTo(x - 3, y + 1);
+            this.ctx.lineTo(x + 2, y + 1);
+            this.ctx.lineTo(x - 2, y + 7);
+        } else if (type === 'multiball') { 
+            this.ctx.arc(x - 5, y + 3, 2.5, 0, Math.PI*2);
+            this.ctx.rect(x + 2, y - 5, 0, 0); 
+            this.ctx.arc(x + 5, y + 3, 2.5, 0, Math.PI*2);
+            this.ctx.rect(x, y - 5, 0, 0); 
+            this.ctx.arc(x, y - 5, 2.5, 0, Math.PI*2);
+            this.ctx.fill(); 
+            return;
+        } else if (type === 'expand') { 
+            this.ctx.moveTo(x - 6, y);
+            this.ctx.lineTo(x + 6, y);
+            this.ctx.moveTo(x - 3, y - 3);
+            this.ctx.lineTo(x - 6, y);
+            this.ctx.lineTo(x - 3, y + 3);
+            this.ctx.moveTo(x + 3, y - 3);
+            this.ctx.lineTo(x + 6, y);
+            this.ctx.lineTo(x + 3, y + 3);
+        } else if (type === 'shrink') { 
+            this.ctx.moveTo(x - 6, y - 3);
+            this.ctx.lineTo(x - 2, y);
+            this.ctx.lineTo(x - 6, y + 3);
+            this.ctx.moveTo(x + 6, y - 3);
+            this.ctx.lineTo(x + 2, y);
+            this.ctx.lineTo(x + 6, y + 3);
+        } else if (type === 'lifeup') {
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, y + 3);
+            this.ctx.bezierCurveTo(x, y, x - 4, y - 6, x - 7, y - 6);
+            this.ctx.bezierCurveTo(x - 12, y - 6, x - 12, y + 1, x - 12, y + 1);
+            this.ctx.bezierCurveTo(x - 12, y + 7, x, y + 11, x, y + 11);
+            this.ctx.bezierCurveTo(x, y + 11, x + 12, y + 7, x + 12, y + 1);
+            this.ctx.bezierCurveTo(x + 12, y + 1, x + 12, y - 6, x + 7, y - 6);
+            this.ctx.bezierCurveTo(x + 4, y - 6, x, y, x, y + 3);
+            this.ctx.fill();
+            return;
+        }
+        this.ctx.stroke();
+    }
+
+    updateUI() {
+        document.getElementById('scoreDisplay').textContent = `${CONFIG.text.score} ${this.score}`;
+        document.getElementById('livesDisplay').innerHTML = `<span style="color: var(--danger-color)">♥</span>: ${this.lives}`;
+    }
+
+    gameOver() {
+        this.state = 'GAMEOVER';
+        document.getElementById('launchMessage').classList.remove('visible');
+        document.getElementById('endTitle').textContent = CONFIG.text.gameOver;
+        document.getElementById('endTitle').style.color = "var(--danger-color)";
+        document.getElementById('endScreen').classList.remove('hidden');
+        this.canvas.style.cursor = 'auto';
+    }
+
+    gameWin() {
+        this.state = 'WIN';
+        document.getElementById('launchMessage').classList.remove('visible');
+        document.getElementById('endTitle').textContent = CONFIG.text.gameWin;
+        document.getElementById('endTitle').style.color = "var(--success-color)";
+        document.getElementById('endScreen').classList.remove('hidden');
+        this.canvas.style.cursor = 'auto';
+    }
+}
+
+// ==========================================================================
+// グローバル & イベント処理
+// ==========================================================================
+const game = new Game();
+
+// 背景リセットボタン
+document.getElementById('resetBgBtn').addEventListener('click', () => {
+    game.bgImage.src = CONFIG.defaultBg;
+    // 画像ロードイベントを再設定してリセット
+    game.bgImage.onload = () => game.resizeAndReset();
+    if (!CONFIG.defaultBg) {
+        // デフォルトが空なら即座にリサイズ
+        game.resizeAndReset();
+    }
+    showToast(CONFIG.text.bgReset);
+});
+
+// ミュートボタン
+document.getElementById('muteBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    SoundManager.toggleMute();
+});
+
+// ダークモード切替ボタン
+document.getElementById('darkModeBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.body.classList.toggle('dark');
+});
+
+// トースト通知表示
+function showToast(message) {
+    const existing = document.querySelector('.toast-notification');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+</script>
+</body>
+</html>
