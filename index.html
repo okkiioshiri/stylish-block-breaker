@@ -265,8 +265,8 @@
 
 <script>
 /**
- * Stylish Block Breaker v24
- * Revised for Stylish Item Design & Fixed Score Display
+ * Stylish Block Breaker v25
+ * Revised: Blocks now use a frosty glass effect (Blur + Opacity 50%)
  */
 
 const CONFIG = {
@@ -299,7 +299,7 @@ const CONFIG = {
         rowHeight: 12,        // ブロックの基本高さ
         padding: 0,           // ブロック間の隙間
         offsetTop: 0,         // 上部の余白
-        opacity: 0.8          // 描画時の透明度
+        opacity: 0.5          // 【変更】50%の不透明度
     },
     // ブロックの色リスト (上から順に使用され以下ループ)
     colors: [
@@ -420,6 +420,9 @@ class Game {
         this.canvas.width = CONFIG.baseWidth;
         this.canvas.height = 600; 
         
+        // 【追加】ぼかし背景用キャンバス
+        this.blurredBgCanvas = document.createElement('canvas');
+
         this.state = 'MENU'; // MENU, PLAYING, GAMEOVER, WIN
         this.score = 0;
         this.lives = 3;
@@ -485,6 +488,9 @@ class Game {
         const container = document.getElementById('gameContainer');
         container.style.aspectRatio = `${CONFIG.baseWidth}/${totalHeight}`;
         
+        // 【追加】ぼかし背景を生成
+        this.createBlurredBackground();
+
         if (this.state !== 'MENU') {
             this.resetGame(); 
             this.state = 'PLAYING'; 
@@ -494,6 +500,22 @@ class Game {
         }
         
         this.draw();
+    }
+
+    // 【追加】曇りガラス用のぼかし背景を生成
+    createBlurredBackground() {
+        if (!this.bgImage.src || !this.bgImage.complete || this.bgImage.naturalWidth === 0) return;
+
+        this.blurredBgCanvas.width = this.canvas.width;
+        this.blurredBgCanvas.height = this.canvas.height;
+        const ctx = this.blurredBgCanvas.getContext('2d');
+        const drawHeight = this.canvas.height - CONFIG.safeZoneHeight;
+
+        // 曇りガラス効果（ブラー）をかけて描画
+        // 端のフェードを防ぐため、少し大きめに描画してクリップ
+        ctx.filter = 'blur(8px)'; 
+        ctx.drawImage(this.bgImage, -20, -20, this.canvas.width + 40, drawHeight + 40);
+        ctx.filter = 'none';
     }
 
     // 入力イベントの設定
@@ -927,19 +949,35 @@ class Game {
         this.ctx.fillStyle = "#000000";
         this.ctx.fillRect(0, this.canvas.height - CONFIG.safeZoneHeight, this.canvas.width, CONFIG.safeZoneHeight);
 
-        // ブロック
-        this.ctx.globalAlpha = CONFIG.blocks.opacity; 
+        // ブロック描画
         this.blocks.forEach(b => {
             if (b.active) {
+                // 1. ぼかし背景をブロックの領域に転送（曇りガラス効果）
+                // 背景画像が有効な場合のみ
+                if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth > 0) {
+                     this.ctx.drawImage(
+                         this.blurredBgCanvas, 
+                         b.x, b.y, b.w, b.h, 
+                         b.x, b.y, b.w, b.h
+                     );
+                }
+
+                // 2. ブロックの色を半透明で重ねる
+                this.ctx.globalAlpha = CONFIG.blocks.opacity;
                 this.ctx.fillStyle = b.color;
                 this.ctx.fillRect(b.x, b.y, b.w, b.h);
-                this.ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+
+                // 3. 枠線 (少し薄めに)
+                this.ctx.globalAlpha = 0.3; 
+                this.ctx.strokeStyle = '#000000';
                 this.ctx.lineWidth = 1;
                 this.ctx.strokeRect(b.x, b.y, b.w, b.h);
+                
+                // アルファ値を戻す
+                this.ctx.globalAlpha = 1.0;
             }
         });
-        this.ctx.globalAlpha = 1.0; 
-
+        
         // パドル
         const pushOffset = (this.pushTimer > 0) ? Math.sin((this.pushTimer / this.pushMax) * Math.PI) * 12 : 0;
         const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset - pushOffset;
@@ -1002,7 +1040,7 @@ class Game {
     }
 
     /**
-     * 【修正箇所】クールでスタイリッシュなアイテムアイコン描画
+     * アイテムアイコン描画
      */
     drawItemIcon(x, y, type, color) {
         const r = 14; 
