@@ -71,6 +71,8 @@
         box-sizing: border-box;
         cursor: pointer;
         min-height: 300px; 
+        -webkit-tap-highlight-color: transparent;
+        touch-action: none;
     }
 
     .game-container.drag-over {
@@ -154,11 +156,27 @@
     /* ボタンの位置定義 */
     #darkModeBtn { right: 15px; }
     #muteBtn { right: 70px; }
-    #imgToggleBtn { right: 125px; } /* 新しい切り替えボタン */
+    #imgToggleBtn { right: 125px; }
 
     .fixed-btn svg { width: 22px; height: 22px; fill: currentColor; }
     #muteBtn.muted svg path.sound-wave { display: none; }
     #muteBtn.muted .mute-x { display: block; }
+
+    /* ==========================================================================
+       ツールチップ設定 (参考コードより移植)
+       ========================================================================== */
+    #global-tooltip {
+        position: fixed; background: var(--tooltip-bg); color: var(--tooltip-text);
+        padding: 8px 12px; font-size: 12px; border-radius: 6px;
+        /* クリックを透過させる重要設定 */
+        pointer-events: none !important; 
+        /* モーダル(20000)より手前に表示 */
+        z-index: 30000; 
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        backdrop-filter: blur(4px); white-space: nowrap; font-weight: 500; max-width: 90vw; 
+    }
 
     .toast-notification {
         position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
@@ -187,14 +205,12 @@
 <body class="dark"> 
 
 <!-- ▼ 固定ボタン群 -->
-<!-- 1. ブロック画像切り替えボタン -->
-<button id="imgToggleBtn" class="fixed-btn" aria-label="ブロック模様切り替え">
+<button id="imgToggleBtn" class="fixed-btn" aria-label="ブロック画像を変更" data-tooltip="ブロック画像を変更">
     <svg viewBox="0 0 24 24">
         <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
     </svg>
 </button>
-<!-- 2. ミュートボタン -->
-<button id="muteBtn" class="fixed-btn" aria-label="ミュート">
+<button id="muteBtn" class="fixed-btn" aria-label="ミュートする" data-tooltip="ミュートする">
     <svg viewBox="0 0 24 24">
         <path d="M3 9v6h4l5 5V4L7 9H3z"/>
         <path class="sound-wave" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
@@ -203,8 +219,7 @@
         </g>
     </svg>
 </button>
-<!-- 3. ダークモードボタン -->
-<button id="darkModeBtn" class="fixed-btn" aria-label="ダークモード切替">
+<button id="darkModeBtn" class="fixed-btn" aria-label="ダークモード切替" data-tooltip="ダークモード切替">
     <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c4.97 0 9-4.03 9-9a9 9 0 0 0-9-9z"/></svg>
 </button>
 
@@ -239,15 +254,14 @@ const USER_SETTINGS = {
     // 1. ゲーム全体の背景画像URL (空欄なら黒背景)
     backgroundImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/24XnbuoP.jpg",
 
-    // 2. ブロックの表面に貼り付ける画像のURL（空欄なら１を背景画像のすりガラスを適用）
-    //    ※ 右上の画像アイコンボタンで、この画像と「すりガラス」を切り替え
+    // 2. ブロックの表面に貼り付ける画像のURL
+    //    ※ 右上の画像アイコンボタンで、この画像と「すりガラス」を切り替えられます
     blockOverlayImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/lUMPD61O.jpg", 
 };
 // =============================================================================
 
 /**
- * Stylish Block Breaker v30
- * Organized for easier editing.
+ * Stylish Block Breaker v36
  */
 
 const CONFIG = {
@@ -263,7 +277,7 @@ const CONFIG = {
         highlightColor: '#007aff'
     },
     ball: { 
-        radius: 7,
+        radius: 4, 
         color: '#fff',
         normalSpeed: 2.5,
         fastSpeed: 9,
@@ -275,7 +289,6 @@ const CONFIG = {
         padding: 0,
         offsetTop: 0,
         opacity: 0.5,
-        // 上部で定義した設定を使用
         overlayImage: USER_SETTINGS.blockOverlayImage 
     },
     colors: [
@@ -317,7 +330,18 @@ const SoundManager = {
     },
     toggleMute() {
         this.isMuted = !this.isMuted;
-        document.getElementById('muteBtn').classList.toggle('muted', this.isMuted);
+        const btn = document.getElementById('muteBtn');
+        btn.classList.toggle('muted', this.isMuted);
+
+        // ツールチップの文言を動的に変更
+        const newText = this.isMuted ? "ミュート解除" : "ミュートする";
+        btn.setAttribute('data-tooltip', newText);
+        
+        // 現在表示中のツールチップがあれば即座に更新
+        const tooltip = document.getElementById('global-tooltip');
+        if (tooltip && tooltip.style.opacity === '1' && tooltip.textContent !== newText) {
+             tooltip.textContent = newText;
+        }
     },
     play(type) {
         if (this.isMuted || !this.ctx) return;
@@ -374,9 +398,8 @@ class Game {
         this.pushTimer = 0;
         this.pushMax = 10;
         this.shakeTime = 0;
+        this.initDone = false; 
 
-        // ブロック画像の切り替えモード管理 (true: 画像, false: すりガラス)
-        // 初期値は、画像URLが設定されていればtrue
         this.useOverlayImage = !!CONFIG.blocks.overlayImage;
 
         this.bgImage = new Image();
@@ -388,19 +411,23 @@ class Game {
             this.blockImage.src = CONFIG.blocks.overlayImage;
         }
 
-        // HTML属性よりUSER_SETTINGSを優先
         const bgUrl = CONFIG.defaultBg;
 
-        const startInit = () => this.resizeAndReset();
+        const startInit = () => {
+            if (this.initDone) return;
+            this.initDone = true;
+            this.resizeAndReset();
+        };
 
         if (bgUrl) {
             this.bgImage.onload = startInit;
             this.bgImage.onerror = () => {
                 console.warn("Background image failed to load.");
-                this.bgImage.src = ""; 
                 startInit();
             };
             this.bgImage.src = bgUrl;
+            
+            setTimeout(startInit, 3000);
         } else {
             startInit();
         }
@@ -415,7 +442,6 @@ class Game {
         requestAnimationFrame(loop);
     }
 
-    // ブロック模様切り替え
     toggleBlockImage() {
         if (!CONFIG.blocks.overlayImage) {
             showToast("ブロック用画像が設定されていません");
@@ -427,7 +453,7 @@ class Game {
         } else {
             showToast("ブロック模様: すりガラス");
         }
-        this.draw(); // 即時反映
+        this.draw(); 
     }
 
     resizeAndReset() {
@@ -523,7 +549,14 @@ class Game {
     loadBackground(file) {
         const reader = new FileReader();
         reader.onload = (ev) => {
-            this.bgImage.onload = () => this.resizeAndReset();
+            this.bgImage.onload = () => {
+                // 背景変更時に、ブロック画像をすりガラスに変更＆画像設定をリセット
+                this.useOverlayImage = false;
+                CONFIG.blocks.overlayImage = ""; 
+                this.blockImage.src = "";
+                
+                this.resizeAndReset();
+            };
             this.bgImage.onerror = () => { showToast("画像の読み込みに失敗しました"); this.resizeAndReset(); };
             this.bgImage.src = ev.target.result;
             showToast(CONFIG.text.bgChanged);
@@ -745,22 +778,13 @@ class Game {
 
         this.blocks.forEach(b => {
             if (b.active) {
-                // 画像モードON かつ 画像が有効なら画像を描画
                 if (this.useOverlayImage && this.blockImage.src && this.blockImage.complete && this.blockImage.naturalWidth > 0) {
                     const scaleX = this.blockImage.naturalWidth / this.canvas.width;
                     const scaleY = this.blockImage.naturalHeight / drawHeight;
-                    
-                    this.ctx.drawImage(
-                        this.blockImage, 
-                        b.x * scaleX, b.y * scaleY, b.w * scaleX, b.h * scaleY, 
-                        b.x, b.y, b.w, b.h 
-                    );
-                }
-                // そうでなければ「すりガラス（ぼかし背景）」
-                else if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth > 0) {
+                    this.ctx.drawImage(this.blockImage, b.x * scaleX, b.y * scaleY, b.w * scaleX, b.h * scaleY, b.x, b.y, b.w, b.h);
+                } else if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth > 0) {
                      this.ctx.drawImage(this.blurredBgCanvas, b.x, b.y, b.w, b.h, b.x, b.y, b.w, b.h);
                 }
-
                 this.ctx.globalAlpha = CONFIG.blocks.opacity; this.ctx.fillStyle = b.color; this.ctx.fillRect(b.x, b.y, b.w, b.h);
                 this.ctx.globalAlpha = 0.3; this.ctx.strokeStyle = '#000000'; this.ctx.lineWidth = 1; this.ctx.strokeRect(b.x, b.y, b.w, b.h);
                 this.ctx.globalAlpha = 1.0;
@@ -776,17 +800,56 @@ class Game {
         this.ctx.fillRect(this.paddle.x, paddleTop, this.paddle.width, CONFIG.paddle.height);
         this.ctx.shadowBlur = 0; 
 
+        // ▼▼▼ ボール描画 ▼▼▼
         this.balls.forEach(b => {
             if(b.active) {
+                // スマッシュ時の残像
                 if (b.isSmashing && b.trail.length > 0) {
                     this.ctx.beginPath();
                     b.trail.forEach((pos, index) => { if (index === 0) this.ctx.moveTo(pos.x, pos.y); else this.ctx.lineTo(pos.x, pos.y); });
                     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; this.ctx.lineWidth = b.radius * 2; this.ctx.lineCap = 'round'; this.ctx.stroke();
                 }
-                this.ctx.fillStyle = CONFIG.ball.color; this.ctx.beginPath(); this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); this.ctx.fill();
-                this.ctx.strokeStyle = "rgba(0,0,0,0.8)"; this.ctx.lineWidth = 2; this.ctx.stroke();
+
+                this.ctx.save();
+                this.ctx.translate(b.x, b.y);
+                let angle;
+                if (b.isAttached) angle = -Math.PI / 2;
+                else angle = Math.atan2(b.dy, b.dx);
+                this.ctx.rotate(angle);
+
+                // 頭部（円）- 常に描画
+                this.ctx.fillStyle = CONFIG.ball.color;
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, b.radius, 0, Math.PI*2);
+                this.ctx.fill();
+
+                // 尾（にょろにょろ）- 発射されている時のみ描画
+                if (!b.isAttached) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, 0); 
+                    
+                    const tailLength = 25; 
+                    const waveFreq = 0.3;
+                    const waveSpeed = 0.07;
+                    const time = Date.now();
+
+                    for (let i = 0; i <= tailLength; i += 2) {
+                        const amp = (i / tailLength) * 6; 
+                        const tx = -i; 
+                        const ty = Math.sin(i * waveFreq - time * waveSpeed) * amp;
+                        this.ctx.lineTo(tx, ty);
+                    }
+                    this.ctx.strokeStyle = CONFIG.ball.color;
+                    this.ctx.lineWidth = 2; 
+                    this.ctx.lineCap = 'round'; 
+                    this.ctx.lineJoin = 'round';
+                    this.ctx.stroke();
+                }
+
+                this.ctx.restore();
             }
         });
+        // ▲▲▲ ボール描画終了 ▲▲▲
 
         this.items.forEach(item => this.drawItemIcon(item.x, item.y, item.type, item.color));
         this.particles.forEach(p => { this.ctx.globalAlpha = p.life; this.ctx.fillStyle = p.color; this.ctx.fillRect(p.x, p.y, 3, 3); });
@@ -835,7 +898,6 @@ const game = new Game();
 // イベントリスナー
 document.getElementById('muteBtn').addEventListener('click', (e) => { e.stopPropagation(); SoundManager.toggleMute(); });
 document.getElementById('darkModeBtn').addEventListener('click', (e) => { e.stopPropagation(); document.body.classList.toggle('dark'); });
-// ★追加: ブロック模様切り替え
 document.getElementById('imgToggleBtn').addEventListener('click', (e) => { e.stopPropagation(); game.toggleBlockImage(); });
 
 function showToast(message) {
@@ -845,6 +907,42 @@ function showToast(message) {
     document.body.appendChild(toast); requestAnimationFrame(() => toast.classList.add('show'));
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2000);
 }
+
+// ツールチップ機能 (フローティング追従型)
+function initTooltip() {
+    const existing = document.getElementById('global-tooltip');
+    if (existing) existing.remove();
+    const tooltip = document.createElement('div');
+    tooltip.id = 'global-tooltip';
+    tooltip.style.pointerEvents = 'none';
+    document.body.appendChild(tooltip);
+    document.addEventListener('mouseover', (e) => {
+        const target = e.target.closest('[data-tooltip]');
+        if (target) {
+            tooltip.textContent = target.getAttribute('data-tooltip');
+            tooltip.style.opacity = '1';
+        }
+    });
+    document.addEventListener('mouseout', (e) => {
+        const target = e.target.closest('[data-tooltip]');
+        if (target) tooltip.style.opacity = '0';
+    });
+    document.addEventListener('mousemove', (e) => {
+        if (tooltip.style.opacity === '1') {
+            const offset = 15;
+            let left = e.clientX + offset;
+            let top = e.clientY + offset;
+            if (left + tooltip.offsetWidth > window.innerWidth) left = e.clientX - tooltip.offsetWidth - offset;
+            if (top + tooltip.offsetHeight > window.innerHeight) top = e.clientY - tooltip.offsetHeight - offset;
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        }
+    });
+}
+
+// 初期化実行
+document.addEventListener('DOMContentLoaded', initTooltip);
+
 </script>
 </body>
 </html>
