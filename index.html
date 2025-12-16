@@ -2,7 +2,6 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<!-- ビューポート設定: スマホ等での表示倍率を制御 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>stylish block breaker</title>
 <style>
@@ -10,7 +9,6 @@
        1. デザイン設定 (CSS変数)
        ========================================================================== */
     :root {
-        /* ライトモード用カラー */
         --bg-color: #f2f2f7;
         --card-bg: #ffffff;
         --text-color: #1c1c1e;
@@ -20,15 +18,14 @@
         --input-border: #d1d1d6;
         --accent-color: #8e8e93;
         --highlight-color: #007aff;
-        --danger-color: #ff3b30;    /* ゲームオーバー、ライフ等 */
-        --success-color: #34c759;   /* クリア等) */
+        --danger-color: #ff3b30;
+        --success-color: #34c759;
         --shadow-color: rgba(0, 0, 0, 0.1);
         --tooltip-bg: rgba(40, 40, 40, 0.95);
         --tooltip-text: #ffffff;
         --font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
     }
 
-    /* ダークモード用カラー */
     body.dark {
         --bg-color: #1c1c1e;
         --card-bg: #2c2c2e;
@@ -45,9 +42,6 @@
         --tooltip-text: #1c1c1e;
     }
 
-    /* ==========================================================================
-       2. 基本レイアウト
-       ========================================================================== */
     body {
         font-family: var(--font-family);
         background: var(--bg-color);
@@ -64,11 +58,10 @@
         touch-action: none;
     }
 
-    /* ゲーム画面の外枠 */
     .game-container {
         position: relative;
         width: 100%;
-        max-width: 800px;
+        max-width: 1000px;
         background: #000;
         box-shadow: 0 10px 30px var(--shadow-color);
         border-radius: 12px;
@@ -77,9 +70,9 @@
         border: 4px solid transparent; 
         box-sizing: border-box;
         cursor: pointer;
+        min-height: 300px; 
     }
 
-    /* ファイルドラッグ時のスタイル */
     .game-container.drag-over {
         border-color: var(--highlight-color);
         opacity: 0.8;
@@ -89,12 +82,10 @@
         display: block;
         width: 100%;
         height: 100%;
-        cursor: none; /* ゲーム中はカーソルを隠す */
+        cursor: none; 
     }
 
-    /* ==========================================================================
-       3. UIオーバーレイ (スコア、メッセージ等)
-       ========================================================================== */
+    /* UIレイヤー */
     .ui-layer {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -110,15 +101,16 @@
     .header-info {
         display: flex;
         justify-content: space-between;
-        font-size: 20px;
+        font-size: 24px;
         font-weight: bold;
         color: #fff;
         text-shadow: 0 2px 4px rgba(0,0,0,0.8);
         background: rgba(0,0,0,0.3);
-        padding: 5px 15px;
+        padding: 8px 20px;
         border-radius: 20px;
     }
 
+    /* オーバーレイ (Start/GameOver) */
     .screen-overlay {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -130,59 +122,44 @@
         z-index: 50;
         backdrop-filter: blur(4px);
         transition: opacity 0.3s;
-        pointer-events: none;
+        pointer-events: none; 
         color: #fff;
     }
     .screen-overlay.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
 
     /* テキストスタイル */
-    h1 { font-size: 48px; margin: 0 0 10px 0; letter-spacing: 0.05em; pointer-events: none; }
-    p.sub-text { font-size: 18px; opacity: 0.8; margin-bottom: 30px; pointer-events: none; }
+    h1 { font-size: 56px; margin: 0 0 10px 0; letter-spacing: 0.05em; pointer-events: none; }
+    p.sub-text { font-size: 20px; opacity: 0.8; margin-bottom: 30px; pointer-events: none; }
     .blink { animation: blink 1.5s infinite; }
     @keyframes blink { 50% { opacity: 0.5; } }
 
-    /* ==========================================================================
-       4. コントロールボタンエリア
-       ========================================================================== */
-    .controls-area {
-        margin-top: 20px;
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        justify-content: center;
-        width: 100%;
-        max-width: 800px;
-    }
-
-    button, .file-label {
-        font-size: 14px; font-weight: 600;
-        display: inline-flex; align-items: center; justify-content: center;
-        height: 40px; padding: 0 16px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        background: var(--card-bg);
-        color: var(--text-color);
-        border: 1px solid var(--border-color);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        text-decoration: none;
-    }
-    button:hover, .file-label:hover { transform: translateY(-1px); opacity: 0.9; }
-    button:active { transform: translateY(1px); }
-
+    /* 固定ボタン */
     .fixed-btn {
-        position: fixed; top: 15px; right: 15px;
+        position: fixed; top: 15px; 
         width: 44px; height: 44px; padding: 0;
         border-radius: 50%;
         z-index: 100;
         pointer-events: auto;
+        background: var(--card-bg);
+        color: var(--text-color);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
     }
+    .fixed-btn:hover { transform: translateY(-1px); opacity: 0.9; }
+    .fixed-btn:active { transform: translateY(1px); }
+    
+    /* ボタンの位置定義 */
+    #darkModeBtn { right: 15px; }
     #muteBtn { right: 70px; }
+    #imgToggleBtn { right: 125px; } /* 新しい切り替えボタン */
+
     .fixed-btn svg { width: 22px; height: 22px; fill: currentColor; }
     #muteBtn.muted svg path.sound-wave { display: none; }
     #muteBtn.muted .mute-x { display: block; }
 
-    /* 通知トースト */
     .toast-notification {
         position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
         background: var(--tooltip-bg); color: var(--tooltip-text);
@@ -192,16 +169,13 @@
         transition: opacity 0.3s ease, transform 0.3s ease;
     }
     .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-    #bgInput { display: none; }
     
-    /* 発射メッセージ ("CLICK TO LAUNCH") */
     #launchMessage {
         position: absolute; 
         bottom: 80px; 
         left: 0;
         width: 100%; text-align: center;
-        color: #fff; font-size: 14px; font-weight: bold; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        color: #fff; font-size: 16px; font-weight: bold; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         pointer-events: none; opacity: 0; transition: opacity 0.3s;
         z-index: 20;
     }
@@ -210,10 +184,16 @@
 </style>
 </head>
 
-<!-- ▼▼▼ ここで背景画像を設定できます (例: data-game-bg="画像のURL") ▼▼▼ -->
-<body class="dark" data-game-bg="https://pbs.twimg.com/media/GS4Zm5QWIAA-VjJ.jpg"> 
+<body class="dark"> 
 
-<!-- 右上の固定ボタン -->
+<!-- ▼ 固定ボタン群 -->
+<!-- 1. ブロック画像切り替えボタン -->
+<button id="imgToggleBtn" class="fixed-btn" aria-label="ブロック模様切り替え">
+    <svg viewBox="0 0 24 24">
+        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+    </svg>
+</button>
+<!-- 2. ミュートボタン -->
 <button id="muteBtn" class="fixed-btn" aria-label="ミュート">
     <svg viewBox="0 0 24 24">
         <path d="M3 9v6h4l5 5V4L7 9H3z"/>
@@ -223,15 +203,14 @@
         </g>
     </svg>
 </button>
+<!-- 3. ダークモードボタン -->
 <button id="darkModeBtn" class="fixed-btn" aria-label="ダークモード切替">
     <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c4.97 0 9-4.03 9-9a9 9 0 0 0-9-9z"/></svg>
 </button>
 
-<!-- ゲームエリア -->
 <div class="game-container" id="gameContainer">
     <canvas id="gameCanvas"></canvas>
     
-    <!-- UIレイヤー: スコア、ライフ、メッセージ -->
     <div class="ui-layer">
         <div class="header-info">
             <span id="scoreDisplay">SCORE: 0</span>
@@ -240,13 +219,11 @@
         <div id="launchMessage">CLICK TO LAUNCH</div>
     </div>
 
-    <!-- スタート画面 -->
     <div id="startScreen" class="screen-overlay">
         <h1>BLOCK BREAKER</h1>
         <p class="sub-text blink">Click to Start</p>
     </div>
 
-    <!-- ゲームオーバー画面 -->
     <div id="endScreen" class="screen-overlay hidden">
         <h1 id="endTitle">GAME OVER</h1>
         <p class="sub-text" id="endScore">Score: 0</p>
@@ -254,63 +231,60 @@
     </div>
 </div>
 
-<!-- 下部コントロールエリア -->
-<div class="controls-area">
-    <label for="bgInput" class="file-label">
-        背景画像を変更
-        <input type="file" id="bgInput" accept="image/*">
-    </label>
-    <button id="resetBgBtn">↻ 背景リセット</button>
-</div>
-
 <script>
+// =============================================================================
+// ▼▼▼ ユーザー設定エリア ▼▼▼
+// =============================================================================
+const USER_SETTINGS = {
+    // 1. ゲーム全体の背景画像URL (空欄なら黒背景)
+    backgroundImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/24XnbuoP.jpg",
+
+    // 2. ブロックの表面に貼り付ける画像のURL（空欄なら１を背景画像のすりガラスを適用）
+    //    ※ 右上の画像アイコンボタンで、この画像と「すりガラス」を切り替え
+    blockOverlayImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/lUMPD61O.jpg", 
+};
+// =============================================================================
+
 /**
- * Stylish Block Breaker v25
- * Revised: Blocks now use a frosty glass effect (Blur + Opacity 50%)
+ * Stylish Block Breaker v30
+ * Organized for easier editing.
  */
 
 const CONFIG = {
-    // === 基本設定 ===
-    baseWidth: 800,           // ゲームの基本幅 (px)
-    safeZoneHeight: 150,      // 画面下部の黒いエリアの高さ (px)
-    defaultBg: '',            // デフォルト背景画像 (空欄の場合はHTMLの属性または黒背景)
+    baseWidth: 1000,
+    safeZoneHeight: 150,
+    defaultBg: USER_SETTINGS.backgroundImage, 
 
-    // === パドル (自機) 設定 ===
     paddle: { 
-        width: 60,            // 初期幅
-        height: 16,           // 高さ
-        color: '#fff',        // 色
-        bottomOffset: 30,     // 画面下端からの距離
-        highlightColor: '#007aff' // アイテム効果中の発光色 (青)
+        width: 80,
+        height: 16,
+        color: '#fff',
+        bottomOffset: 30,
+        highlightColor: '#007aff'
     },
-
-    // === ボール設定 ===
     ball: { 
-        radius: 6,            // 半径
-        color: '#fff',        // 色 (描画ロジック内で参照)
-        normalSpeed: 2.2,     // 通常速度 (遅め)
-        fastSpeed: 8,         // 高速速度 (アイテム効果中など)
-        smashSpeedMultiplier: 2.0 // スマッシュ時の速度倍率 (fastSpeed * 2.0)
+        radius: 7,
+        color: '#fff',
+        normalSpeed: 2.5,
+        fastSpeed: 9,
+        smashSpeedMultiplier: 2.0
     }, 
-
-    // === ブロック設定 ===
     blocks: { 
-        cols: 32,             // 横の列数
-        rowHeight: 12,        // ブロックの基本高さ
-        padding: 0,           // ブロック間の隙間
-        offsetTop: 0,         // 上部の余白
-        opacity: 0.5          // 【変更】50%の不透明度
+        cols: 32,
+        rowHeight: 14,
+        padding: 0,
+        offsetTop: 0,
+        opacity: 0.5,
+        // 上部で定義した設定を使用
+        overlayImage: USER_SETTINGS.blockOverlayImage 
     },
-    // ブロックの色リスト (上から順に使用され以下ループ)
     colors: [
         '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0', 
         '#a0a0a0', '#909090', '#808080', '#707070', '#606060'
     ],
-
-    // === アイテム設定 ===
     items: {
-        probability: 0.05,    // 出現確率 (0.0 ～ 1.0)
-        dropSpeed: 0.5,       // 落下速度 (ゆっくり)
+        probability: 0.05,
+        dropSpeed: 0.5,
         types: [
             { type: 'speedup', color: '#00e5ff', text: 'SPEED UP (3s)' },
             { type: 'multiball', color: '#ffcc00', text: 'MULTI BALL' },
@@ -319,8 +293,6 @@ const CONFIG = {
             { type: 'lifeup', color: '#ff2d55', text: 'EXTRA LIFE' } 
         ]
     },
-
-    // === 表示テキスト設定 ===
     text: {
         score: "SCORE:",
         launch: "CLICK TO LAUNCH",
@@ -331,14 +303,9 @@ const CONFIG = {
     }
 };
 
-// ==========================================================================
-// サウンド管理 (SoundManager)
-// ==========================================================================
 const SoundManager = {
     ctx: null,
     isMuted: false,
-
-    // 初期化
     init() {
         if (!this.ctx) {
             try {
@@ -348,14 +315,10 @@ const SoundManager = {
         }
         if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
     },
-
-    // ミュート切り替え
     toggleMute() {
         this.isMuted = !this.isMuted;
         document.getElementById('muteBtn').classList.toggle('muted', this.isMuted);
     },
-
-    // 音の再生
     play(type) {
         if (this.isMuted || !this.ctx) return;
         const t = this.ctx.currentTime;
@@ -363,71 +326,44 @@ const SoundManager = {
         const gain = this.ctx.createGain();
         osc.connect(gain);
         gain.connect(this.ctx.destination);
-
-        // 音色の設定
         if (type === 'launch') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(440, t);
-            osc.frequency.linearRampToValueAtTime(880, t + 0.1);
-            gain.gain.setValueAtTime(0.1, t);
-            gain.gain.linearRampToValueAtTime(0, t + 0.2);
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(440, t); osc.frequency.linearRampToValueAtTime(880, t + 0.1);
+            gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.2);
             osc.start(t); osc.stop(t + 0.2);
-        } else if (type === 'smash') { // スマッシュ音 (重い音)
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, t);
-            osc.frequency.exponentialRampToValueAtTime(40, t + 0.2);
-            gain.gain.setValueAtTime(0.3, t);
-            gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+        } else if (type === 'smash') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t); osc.frequency.exponentialRampToValueAtTime(40, t + 0.2);
+            gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
             osc.start(t); osc.stop(t + 0.2);
-        } else if (type === 'hit') { // 壁・パドルヒット
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(600, t);
-            osc.frequency.exponentialRampToValueAtTime(300, t + 0.1);
-            gain.gain.setValueAtTime(0.1, t);
-            gain.gain.linearRampToValueAtTime(0, t + 0.1);
+        } else if (type === 'hit') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(600, t); osc.frequency.exponentialRampToValueAtTime(300, t + 0.1);
+            gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.1);
             osc.start(t); osc.stop(t + 0.1);
-        } else if (type === 'block') { // ブロック破壊
-            osc.type = 'square';
-            osc.frequency.setValueAtTime(800 + Math.random()*200, t);
-            gain.gain.setValueAtTime(0.03, t);
-            gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+        } else if (type === 'block') {
+            osc.type = 'square'; osc.frequency.setValueAtTime(800 + Math.random()*200, t);
+            gain.gain.setValueAtTime(0.03, t); gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
             osc.start(t); osc.stop(t + 0.08);
-        } else if (type === 'item') { // アイテム取得
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(1200, t);
-            osc.frequency.linearRampToValueAtTime(1800, t + 0.1);
-            gain.gain.setValueAtTime(0.1, t);
-            gain.gain.linearRampToValueAtTime(0, t + 0.2);
+        } else if (type === 'item') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(1200, t); osc.frequency.linearRampToValueAtTime(1800, t + 0.1);
+            gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.2);
             osc.start(t); osc.stop(t + 0.2);
-        } else if (type === 'die') { // ミス
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(200, t);
-            osc.frequency.exponentialRampToValueAtTime(50, t + 0.3);
-            gain.gain.setValueAtTime(0.1, t);
-            gain.gain.linearRampToValueAtTime(0, t + 0.3);
+        } else if (type === 'die') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, t); osc.frequency.exponentialRampToValueAtTime(50, t + 0.3);
+            gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.3);
             osc.start(t); osc.stop(t + 0.3);
         }
     }
 };
 
-// ==========================================================================
-// ゲームクラス (Game)
-// ==========================================================================
 class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
-        this.canvas.width = CONFIG.baseWidth;
-        this.canvas.height = 600; 
-        
-        // 【追加】ぼかし背景用キャンバス
         this.blurredBgCanvas = document.createElement('canvas');
 
-        this.state = 'MENU'; // MENU, PLAYING, GAMEOVER, WIN
+        this.state = 'MENU';
         this.score = 0;
         this.lives = 3;
         
-        // パドル、ボール、ブロック等の管理配列
         this.paddle = { x: 0, width: CONFIG.paddle.width };
         this.balls = [];
         this.blocks = [];
@@ -435,30 +371,42 @@ class Game {
         this.particles = [];
         this.speedUpEndTime = 0;
         
-        // パドルプッシュ・演出用
         this.pushTimer = 0;
         this.pushMax = 10;
         this.shakeTime = 0;
 
-        // 背景画像 (HTML属性優先)
+        // ブロック画像の切り替えモード管理 (true: 画像, false: すりガラス)
+        // 初期値は、画像URLが設定されていればtrue
+        this.useOverlayImage = !!CONFIG.blocks.overlayImage;
+
         this.bgImage = new Image();
         this.bgImage.crossOrigin = "anonymous";
         
-        // HTMLの属性からURLを取得
-        const htmlBg = document.body.getAttribute('data-game-bg');
-        const bgUrl = htmlBg || CONFIG.defaultBg;
+        this.blockImage = new Image();
+        this.blockImage.crossOrigin = "anonymous";
+        if (CONFIG.blocks.overlayImage) {
+            this.blockImage.src = CONFIG.blocks.overlayImage;
+        }
+
+        // HTML属性よりUSER_SETTINGSを優先
+        const bgUrl = CONFIG.defaultBg;
+
+        const startInit = () => this.resizeAndReset();
 
         if (bgUrl) {
-            this.bgImage.onload = () => this.resizeAndReset();
+            this.bgImage.onload = startInit;
+            this.bgImage.onerror = () => {
+                console.warn("Background image failed to load.");
+                this.bgImage.src = ""; 
+                startInit();
+            };
             this.bgImage.src = bgUrl;
         } else {
-            // 画像がない場合は即座に初期化
-            this.resizeAndReset();
+            startInit();
         }
 
         this.initInput();
         
-        // ゲームループ開始
         const loop = () => {
             this.update();
             this.draw();
@@ -467,28 +415,37 @@ class Game {
         requestAnimationFrame(loop);
     }
 
-    // キャンバスのリサイズと初期化
+    // ブロック模様切り替え
+    toggleBlockImage() {
+        if (!CONFIG.blocks.overlayImage) {
+            showToast("ブロック用画像が設定されていません");
+            return;
+        }
+        this.useOverlayImage = !this.useOverlayImage;
+        if (this.useOverlayImage) {
+            showToast("ブロック模様: 画像");
+        } else {
+            showToast("ブロック模様: すりガラス");
+        }
+        this.draw(); // 即時反映
+    }
+
     resizeAndReset() {
         let imageHeight;
-        
-        // 画像がロードされている場合
         if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth) {
             const aspect = this.bgImage.naturalHeight / this.bgImage.naturalWidth;
             imageHeight = Math.floor(CONFIG.baseWidth * aspect);
         } else {
-            // 画像がない場合のデフォルト高さ
             imageHeight = 600; 
         }
 
         const totalHeight = imageHeight + CONFIG.safeZoneHeight;
-        
         this.canvas.width = CONFIG.baseWidth;
         this.canvas.height = totalHeight;
         
         const container = document.getElementById('gameContainer');
         container.style.aspectRatio = `${CONFIG.baseWidth}/${totalHeight}`;
         
-        // 【追加】ぼかし背景を生成
         this.createBlurredBackground();
 
         if (this.state !== 'MENU') {
@@ -502,23 +459,17 @@ class Game {
         this.draw();
     }
 
-    // 【追加】曇りガラス用のぼかし背景を生成
     createBlurredBackground() {
         if (!this.bgImage.src || !this.bgImage.complete || this.bgImage.naturalWidth === 0) return;
-
         this.blurredBgCanvas.width = this.canvas.width;
         this.blurredBgCanvas.height = this.canvas.height;
         const ctx = this.blurredBgCanvas.getContext('2d');
         const drawHeight = this.canvas.height - CONFIG.safeZoneHeight;
-
-        // 曇りガラス効果（ブラー）をかけて描画
-        // 端のフェードを防ぐため、少し大きめに描画してクリップ
         ctx.filter = 'blur(8px)'; 
         ctx.drawImage(this.bgImage, -20, -20, this.canvas.width + 40, drawHeight + 40);
         ctx.filter = 'none';
     }
 
-    // 入力イベントの設定
     initInput() {
         const container = document.getElementById('gameContainer');
 
@@ -531,7 +482,6 @@ class Game {
         };
 
         window.addEventListener('mousemove', (e) => movePaddle(e.clientX));
-        
         this.canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
             movePaddle(e.touches[0].clientX);
@@ -539,7 +489,6 @@ class Game {
 
         const handleClick = (e) => {
             SoundManager.init();
-
             if (this.state === 'MENU' || this.state === 'GAMEOVER' || this.state === 'WIN') {
                 this.startGame();
             } else if (this.state === 'PLAYING') {
@@ -547,7 +496,6 @@ class Game {
                 if (attachedBall) {
                     this.tryLaunch();
                 } else {
-                    // パドルプッシュ発動
                     if (this.pushTimer === 0) this.pushTimer = this.pushMax;
                 }
             }
@@ -555,48 +503,28 @@ class Game {
 
         container.addEventListener('mousedown', handleClick);
         container.addEventListener('touchstart', (e) => {
+            e.preventDefault();
             handleClick(e);
-        });
-
-        document.getElementById('bgInput').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) this.loadBackground(file);
-        });
+        }, { passive: false });
 
         this.setupDragAndDrop(container);
     }
 
-    // D&Dによる背景変更
     setupDragAndDrop(element) {
-        element.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            element.classList.add('drag-over');
-        });
-
-        element.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            element.classList.remove('drag-over');
-        });
-
+        element.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); element.classList.add('drag-over'); });
+        element.addEventListener('dragleave', (e) => { e.preventDefault(); e.stopPropagation(); element.classList.remove('drag-over'); });
         element.addEventListener('drop', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            element.classList.remove('drag-over');
-            
+            e.preventDefault(); e.stopPropagation(); element.classList.remove('drag-over');
             const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                this.loadBackground(file);
-            }
+            if (file && file.type.startsWith('image/')) this.loadBackground(file);
         });
     }
 
     loadBackground(file) {
         const reader = new FileReader();
         reader.onload = (ev) => {
-            // 画像ロードイベントを再設定
             this.bgImage.onload = () => this.resizeAndReset();
+            this.bgImage.onerror = () => { showToast("画像の読み込みに失敗しました"); this.resizeAndReset(); };
             this.bgImage.src = ev.target.result;
             showToast(CONFIG.text.bgChanged);
         };
@@ -606,7 +534,6 @@ class Game {
     startGame() {
         this.resetGame();
         this.state = 'PLAYING';
-        
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('endScreen').classList.add('hidden');
         this.canvas.style.cursor = 'none';
@@ -616,7 +543,6 @@ class Game {
         const attachedBall = this.balls.find(b => b.isAttached);
         if (attachedBall) {
             attachedBall.isAttached = false;
-            // 発射角をランダムに少しばらつかせる
             const angle = -Math.PI / 2 + (Math.random() * 0.5 - 0.25);
             const speed = this.getCurrentTargetSpeed();
             attachedBall.dx = speed * Math.cos(angle);
@@ -647,14 +573,9 @@ class Game {
 
     spawnBall(attached = false) {
         this.balls = [{
-            x: this.canvas.width / 2,
-            y: this.canvas.height - 40,
-            dx: 0, dy: 0,
-            radius: CONFIG.ball.radius,
-            active: true,
-            isAttached: attached,
-            isSmashing: false,
-            trail: [] // 残像用座標履歴
+            x: this.canvas.width / 2, y: this.canvas.height - 40,
+            dx: 0, dy: 0, radius: CONFIG.ball.radius, active: true,
+            isAttached: attached, isSmashing: false, trail: []
         }];
         if (attached) {
             document.getElementById('launchMessage').textContent = CONFIG.text.launch;
@@ -667,29 +588,20 @@ class Game {
         const bW = this.canvas.width / CONFIG.blocks.cols;
         const imageAreaHeight = this.canvas.height - CONFIG.safeZoneHeight;
         if (imageAreaHeight <= 0) return; 
-
         const rows = Math.floor(imageAreaHeight / CONFIG.blocks.rowHeight); 
         const bH = imageAreaHeight / rows;
-
         for(let r = 0; r < rows; r++) {
-            const colorIndex = Math.floor((r / rows) * CONFIG.colors.length);
-            const color = CONFIG.colors[colorIndex % CONFIG.colors.length];
+            const color = CONFIG.colors[Math.floor((r / rows) * CONFIG.colors.length) % CONFIG.colors.length];
             for(let c = 0; c < CONFIG.blocks.cols; c++) {
-                this.blocks.push({
-                    x: c * bW, y: CONFIG.blocks.offsetTop + r * bH,
-                    w: bW, h: bH,
-                    color: color, active: true
-                });
+                this.blocks.push({ x: c * bW, y: CONFIG.blocks.offsetTop + r * bH, w: bW, h: bH, color: color, active: true });
             }
         }
     }
 
-    // 現在のターゲット速度を取得 (アイテム効果中は高速化)
     getCurrentTargetSpeed() {
         return (Date.now() < this.speedUpEndTime) ? CONFIG.ball.fastSpeed : CONFIG.ball.normalSpeed;
     }
 
-    // ボール速度の正規化 (スマッシュ解除)
     normalizeBallSpeed(ball) {
         const angle = Math.atan2(ball.dy, ball.dx);
         const speed = this.getCurrentTargetSpeed();
@@ -698,19 +610,13 @@ class Game {
         ball.isSmashing = false;
     }
 
-    // === 更新処理 (毎フレーム実行) ===
     update() {
         if (this.state !== 'PLAYING') return;
-
-        // タイマー減算
         if (this.pushTimer > 0) this.pushTimer--;
         if (this.shakeTime > 0) this.shakeTime--;
 
-        // パドルのアニメーションオフセット (プッシュ時)
         const pushOffset = (this.pushTimer > 0) ? Math.sin((this.pushTimer / this.pushMax) * Math.PI) * 12 : 0;
         const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset - pushOffset;
-
-        // パドル範囲制限
         if (this.paddle.x < 0) this.paddle.x = 0;
         if (this.paddle.x + this.paddle.width > this.canvas.width) this.paddle.x = this.canvas.width - this.paddle.width;
 
@@ -720,399 +626,187 @@ class Game {
         this.balls.forEach(ball => {
             if (!ball.active) return;
             activeBalls++;
-
-            // ボールがパドルにくっついている場合
             if (ball.isAttached) {
                 ball.x = this.paddle.x + this.paddle.width / 2;
                 ball.y = paddleTop - ball.radius - 2;
                 return;
             }
+            if (ball.isSmashing) { ball.trail.push({ x: ball.x, y: ball.y }); if (ball.trail.length > 8) ball.trail.shift(); } 
+            else { ball.trail = []; }
 
-            // トレイル更新 (スマッシュ時のみ)
-            if (ball.isSmashing) {
-                ball.trail.push({ x: ball.x, y: ball.y });
-                if (ball.trail.length > 8) ball.trail.shift();
-            } else {
-                ball.trail = [];
-            }
-
-            // 速度制御
             const currentSpeed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
             if (!ball.isSmashing && currentSpeed > 0) {
-                // 通常時: ターゲット速度に合わせる
                 const scale = targetSpeed / currentSpeed;
                 ball.dx *= scale; ball.dy *= scale;
             } else if (ball.isSmashing && currentSpeed < CONFIG.ball.fastSpeed * 1.5) {
-                // スマッシュ中かつ遅すぎる場合: 最低速度を保証
                 const s = (CONFIG.ball.fastSpeed * 1.5) / currentSpeed;
                 ball.dx *= s; ball.dy *= s;
             }
 
-            // 位置更新
-            ball.x += ball.dx;
-            ball.y += ball.dy;
-
-            // 壁衝突判定
+            ball.x += ball.dx; ball.y += ball.dy;
             let wallHit = false;
-            if (ball.x < ball.radius) {
-                ball.x = ball.radius; ball.dx = Math.abs(ball.dx);
-                wallHit = true;
-            } else if (ball.x > this.canvas.width - ball.radius) {
-                ball.x = this.canvas.width - ball.radius; ball.dx = -Math.abs(ball.dx);
-                wallHit = true;
-            }
-            if (ball.y < ball.radius) {
-                ball.y = ball.radius; ball.dy = Math.abs(ball.dy);
-                wallHit = true;
-            }
+            if (ball.x < ball.radius) { ball.x = ball.radius; ball.dx = Math.abs(ball.dx); wallHit = true; }
+            else if (ball.x > this.canvas.width - ball.radius) { ball.x = this.canvas.width - ball.radius; ball.dx = -Math.abs(ball.dx); wallHit = true; }
+            if (ball.y < ball.radius) { ball.y = ball.radius; ball.dy = Math.abs(ball.dy); wallHit = true; }
             if (wallHit) {
                 SoundManager.play('hit');
-                // スマッシュ状態で壁に当たったら速度を戻す
                 if (ball.isSmashing) this.normalizeBallSpeed(ball);
             }
 
-            // パドル衝突判定
-            if (ball.dy > 0 && 
-                ball.y + ball.radius >= paddleTop &&
-                ball.y - ball.radius <= paddleTop + CONFIG.paddle.height + pushOffset &&
-                ball.x >= this.paddle.x && 
-                ball.x <= this.paddle.x + this.paddle.width) {
-                
-                // 衝突位置による反射角の変化 (-1.0:左端 ～ 1.0:右端)
-                let hitPoint = ball.x - (this.paddle.x + this.paddle.width / 2);
-                hitPoint = hitPoint / (this.paddle.width / 2);
-                const angle = hitPoint * (Math.PI / 3); // 最大60度
-
-                // スマッシュ判定 (プッシュ中か)
+            if (ball.dy > 0 && ball.y + ball.radius >= paddleTop && ball.y - ball.radius <= paddleTop + CONFIG.paddle.height + pushOffset &&
+                ball.x >= this.paddle.x && ball.x <= this.paddle.x + this.paddle.width) {
+                let hitPoint = (ball.x - (this.paddle.x + this.paddle.width / 2)) / (this.paddle.width / 2);
+                const angle = hitPoint * (Math.PI / 3);
                 let speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
                 if (this.pushTimer > 0) {
-                    ball.isSmashing = true; 
-                    speed = CONFIG.ball.fastSpeed * CONFIG.ball.smashSpeedMultiplier; 
-                    this.shakeTime = 10; // 画面を揺らす
-                    SoundManager.play('smash'); 
+                    ball.isSmashing = true; speed = CONFIG.ball.fastSpeed * CONFIG.ball.smashSpeedMultiplier; 
+                    this.shakeTime = 10; SoundManager.play('smash'); 
                 } else {
-                    ball.isSmashing = false;
-                    SoundManager.play('hit');
+                    ball.isSmashing = false; SoundManager.play('hit');
                 }
-
-                // 新しいベクトルを適用
-                ball.dx = speed * Math.sin(angle);
-                ball.dy = -speed * Math.cos(angle);
+                ball.dx = speed * Math.sin(angle); ball.dy = -speed * Math.cos(angle);
                 ball.y = paddleTop - ball.radius - 1; 
             }
 
-            // 落下判定
-            if (ball.y > this.canvas.height) {
-                ball.active = false;
-            }
+            if (ball.y > this.canvas.height) ball.active = false;
 
-            // ブロック衝突判定
             for (let i = 0; i < this.blocks.length; i++) {
                 const block = this.blocks[i];
                 if (!block.active) continue;
-                
-                const bx = block.x;
-                const by = block.y;
-                const bw = block.w;
-                const bh = block.h;
-
-                if (ball.x + ball.radius > bx && ball.x - ball.radius < bx + bw && 
-                    ball.y + ball.radius > by && ball.y - ball.radius < by + bh) {
-                    
-                    block.active = false;
-                    this.score += 100;
-                    this.updateUI();
-                    SoundManager.play('block');
-                    this.createParticles(bx + bw/2, by + bh/2, block.color);
-                    
-                    // アイテムドロップ
-                    if (Math.random() < CONFIG.items.probability) {
-                        this.dropItem(bx + bw/2, by + bh/2);
-                    }
-
-                    // 反射処理
+                if (ball.x + ball.radius > block.x && ball.x - ball.radius < block.x + block.w && 
+                    ball.y + ball.radius > block.y && ball.y - ball.radius < block.y + block.h) {
+                    block.active = false; this.score += 100; this.updateUI(); SoundManager.play('block');
+                    this.createParticles(block.x + block.w/2, block.y + block.h/2, block.color);
+                    if (Math.random() < CONFIG.items.probability) this.dropItem(block.x + block.w/2, block.y + block.h/2);
                     const prevX = ball.x - ball.dx;
-                    if (prevX + ball.radius <= bx || prevX - ball.radius >= bx + bw) {
-                        ball.dx *= -1;
-                    } else {
-                        ball.dy *= -1;
-                    }
-
-                    // スマッシュ状態でブロック破壊したら速度を戻す
+                    if (prevX + ball.radius <= block.x || prevX - ball.radius >= block.x + block.w) ball.dx *= -1; else ball.dy *= -1;
                     if (ball.isSmashing) this.normalizeBallSpeed(ball);
                     break;
                 }
             }
         });
 
-        // ライフ管理
         if (activeBalls === 0) {
-            this.lives--;
-            this.updateUI();
-            SoundManager.play('die');
-            if (this.lives > 0) {
-                this.paddle.width = CONFIG.paddle.width; 
-                this.speedUpEndTime = 0; 
-                this.spawnBall(true); 
-            } else {
-                this.gameOver();
-            }
+            this.lives--; this.updateUI(); SoundManager.play('die');
+            if (this.lives > 0) { this.paddle.width = CONFIG.paddle.width; this.speedUpEndTime = 0; this.spawnBall(true); } else { this.gameOver(); }
         }
 
-        // アイテム更新
         this.items.forEach((item, i) => {
-            item.y += CONFIG.items.dropSpeed; // 落下速度
+            item.y += CONFIG.items.dropSpeed;
+            const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset;
             if (item.y > paddleTop && item.y < paddleTop + CONFIG.paddle.height &&
                 item.x > this.paddle.x && item.x < this.paddle.x + this.paddle.width) {
-                this.activateItem(item);
-                this.items.splice(i, 1);
-            } else if (item.y > this.canvas.height) {
-                this.items.splice(i, 1);
-            }
+                this.activateItem(item); this.items.splice(i, 1);
+            } else if (item.y > this.canvas.height) this.items.splice(i, 1);
         });
 
-        // パーティクル更新
         this.particles.forEach((p, i) => {
             p.x += p.dx; p.y += p.dy; p.life -= 0.02;
             if(p.life <= 0) this.particles.splice(i, 1);
         });
 
-        // クリア判定
-        if (this.blocks.length > 0 && this.blocks.every(b => !b.active)) {
-            this.gameWin();
-        }
+        if (this.blocks.length > 0 && this.blocks.every(b => !b.active)) this.gameWin();
     }
 
-    dropItem(x, y) {
-        const type = CONFIG.items.types[Math.floor(Math.random() * CONFIG.items.types.length)];
-        this.items.push({ x, y, ...type });
-    }
+    dropItem(x, y) { this.items.push({ x, y, ...CONFIG.items.types[Math.floor(Math.random() * CONFIG.items.types.length)] }); }
 
     activateItem(item) {
-        SoundManager.play('item');
-        showToast(item.text);
+        SoundManager.play('item'); showToast(item.text);
         switch(item.type) {
-            case 'speedup': 
-                this.speedUpEndTime = Date.now() + 3000;
-                break;
+            case 'speedup': this.speedUpEndTime = Date.now() + 3000; break;
             case 'multiball':
-                const activeBall = this.balls.find(b => b.active && !b.isAttached);
-                if (activeBall) {
-                    this.balls.push({ 
-                        x: activeBall.x, y: activeBall.y, dx: -activeBall.dx, dy: activeBall.dy, 
-                        radius: activeBall.radius, active: true, isAttached: false, isSmashing: activeBall.isSmashing, trail: [] 
-                    });
-                }
+                const ab = this.balls.find(b => b.active && !b.isAttached);
+                if (ab) this.balls.push({ x: ab.x, y: ab.y, dx: -ab.dx, dy: ab.dy, radius: ab.radius, active: true, isAttached: false, isSmashing: ab.isSmashing, trail: [] });
                 break;
-            case 'expand': 
-                this.paddle.width = Math.min(this.paddle.width * 2, CONFIG.paddle.width * 2); 
-                break;
-            case 'shrink': 
-                this.paddle.width = Math.max(this.paddle.width / 2, CONFIG.paddle.width * 0.5); 
-                break;
-            case 'lifeup': 
-                this.lives++;
-                this.updateUI();
-                break;
+            case 'expand': this.paddle.width = Math.min(this.paddle.width * 2, CONFIG.paddle.width * 2); break;
+            case 'shrink': this.paddle.width = Math.max(this.paddle.width / 2, CONFIG.paddle.width * 0.5); break;
+            case 'lifeup': this.lives++; this.updateUI(); break;
         }
     }
 
     createParticles(x, y, color) {
-        for(let i=0; i<6; i++) {
-            this.particles.push({
-                x, y, dx: (Math.random()-0.5)*5, dy: (Math.random()-0.5)*5,
-                color: color, life: 1.0
-            });
-        }
+        for(let i=0; i<6; i++) this.particles.push({ x, y, dx: (Math.random()-0.5)*5, dy: (Math.random()-0.5)*5, color: color, life: 1.0 });
     }
 
-    // === 描画処理 ===
     draw() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
         this.ctx.save();
-        
-        // 画面揺れ (スマッシュ時)
-        if (this.shakeTime > 0) {
-            const dx = (Math.random() - 0.5) * 10;
-            const dy = (Math.random() - 0.5) * 10;
-            this.ctx.translate(dx, dy);
-        }
+        if (this.shakeTime > 0) { const dx = (Math.random() - 0.5) * 10; const dy = (Math.random() - 0.5) * 10; this.ctx.translate(dx, dy); }
 
-        // 背景描画
         if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth) {
             const drawHeight = this.canvas.height - CONFIG.safeZoneHeight;
             this.ctx.drawImage(this.bgImage, 0, 0, this.canvas.width, drawHeight);
         }
 
-        // 下部黒塗りエリア
         this.ctx.fillStyle = "#000000";
         this.ctx.fillRect(0, this.canvas.height - CONFIG.safeZoneHeight, this.canvas.width, CONFIG.safeZoneHeight);
 
-        // ブロック描画
+        const drawHeight = this.canvas.height - CONFIG.safeZoneHeight;
+
         this.blocks.forEach(b => {
             if (b.active) {
-                // 1. ぼかし背景をブロックの領域に転送（曇りガラス効果）
-                // 背景画像が有効な場合のみ
-                if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth > 0) {
-                     this.ctx.drawImage(
-                         this.blurredBgCanvas, 
-                         b.x, b.y, b.w, b.h, 
-                         b.x, b.y, b.w, b.h
-                     );
+                // 画像モードON かつ 画像が有効なら画像を描画
+                if (this.useOverlayImage && this.blockImage.src && this.blockImage.complete && this.blockImage.naturalWidth > 0) {
+                    const scaleX = this.blockImage.naturalWidth / this.canvas.width;
+                    const scaleY = this.blockImage.naturalHeight / drawHeight;
+                    
+                    this.ctx.drawImage(
+                        this.blockImage, 
+                        b.x * scaleX, b.y * scaleY, b.w * scaleX, b.h * scaleY, 
+                        b.x, b.y, b.w, b.h 
+                    );
+                }
+                // そうでなければ「すりガラス（ぼかし背景）」
+                else if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth > 0) {
+                     this.ctx.drawImage(this.blurredBgCanvas, b.x, b.y, b.w, b.h, b.x, b.y, b.w, b.h);
                 }
 
-                // 2. ブロックの色を半透明で重ねる
-                this.ctx.globalAlpha = CONFIG.blocks.opacity;
-                this.ctx.fillStyle = b.color;
-                this.ctx.fillRect(b.x, b.y, b.w, b.h);
-
-                // 3. 枠線 (少し薄めに)
-                this.ctx.globalAlpha = 0.3; 
-                this.ctx.strokeStyle = '#000000';
-                this.ctx.lineWidth = 1;
-                this.ctx.strokeRect(b.x, b.y, b.w, b.h);
-                
-                // アルファ値を戻す
+                this.ctx.globalAlpha = CONFIG.blocks.opacity; this.ctx.fillStyle = b.color; this.ctx.fillRect(b.x, b.y, b.w, b.h);
+                this.ctx.globalAlpha = 0.3; this.ctx.strokeStyle = '#000000'; this.ctx.lineWidth = 1; this.ctx.strokeRect(b.x, b.y, b.w, b.h);
                 this.ctx.globalAlpha = 1.0;
             }
         });
         
-        // パドル
         const pushOffset = (this.pushTimer > 0) ? Math.sin((this.pushTimer / this.pushMax) * Math.PI) * 12 : 0;
         const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset - pushOffset;
         
         this.ctx.fillStyle = CONFIG.paddle.color;
-        
-        if (Date.now() < this.speedUpEndTime) {
-            this.ctx.shadowBlur = 20;
-            this.ctx.shadowColor = CONFIG.paddle.highlightColor;
-        } else {
-            this.ctx.shadowBlur = 0;
-        }
-        
+        if (Date.now() < this.speedUpEndTime) { this.ctx.shadowBlur = 20; this.ctx.shadowColor = CONFIG.paddle.highlightColor; } 
+        else { this.ctx.shadowBlur = 0; }
         this.ctx.fillRect(this.paddle.x, paddleTop, this.paddle.width, CONFIG.paddle.height);
         this.ctx.shadowBlur = 0; 
 
-        // ボール
         this.balls.forEach(b => {
             if(b.active) {
-                // 残像 (スマッシュ時)
                 if (b.isSmashing && b.trail.length > 0) {
                     this.ctx.beginPath();
-                    b.trail.forEach((pos, index) => {
-                        if (index === 0) this.ctx.moveTo(pos.x, pos.y);
-                        else this.ctx.lineTo(pos.x, pos.y);
-                    });
-                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                    this.ctx.lineWidth = b.radius * 2;
-                    this.ctx.lineCap = 'round';
-                    this.ctx.stroke();
+                    b.trail.forEach((pos, index) => { if (index === 0) this.ctx.moveTo(pos.x, pos.y); else this.ctx.lineTo(pos.x, pos.y); });
+                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; this.ctx.lineWidth = b.radius * 2; this.ctx.lineCap = 'round'; this.ctx.stroke();
                 }
-
-                // 本体
-                this.ctx.fillStyle = CONFIG.ball.color;
-                this.ctx.beginPath();
-                this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
-                this.ctx.fill();
-                
-                // フチ
-                this.ctx.strokeStyle = "rgba(0,0,0,0.8)";
-                this.ctx.lineWidth = 2;
-                this.ctx.stroke();
+                this.ctx.fillStyle = CONFIG.ball.color; this.ctx.beginPath(); this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2); this.ctx.fill();
+                this.ctx.strokeStyle = "rgba(0,0,0,0.8)"; this.ctx.lineWidth = 2; this.ctx.stroke();
             }
         });
 
-        // アイテム
-        this.items.forEach(item => {
-            this.drawItemIcon(item.x, item.y, item.type, item.color);
-        });
-
-        // パーティクル
-        this.particles.forEach(p => {
-            this.ctx.globalAlpha = p.life;
-            this.ctx.fillStyle = p.color;
-            this.ctx.fillRect(p.x, p.y, 3, 3);
-        });
+        this.items.forEach(item => this.drawItemIcon(item.x, item.y, item.type, item.color));
+        this.particles.forEach(p => { this.ctx.globalAlpha = p.life; this.ctx.fillStyle = p.color; this.ctx.fillRect(p.x, p.y, 3, 3); });
         this.ctx.globalAlpha = 1.0;
-
         this.ctx.restore();
     }
 
-    /**
-     * アイテムアイコン描画
-     */
     drawItemIcon(x, y, type, color) {
         const r = 14; 
-        
         this.ctx.save();
-
-        // 1. ネオンのような発光エフェクト (外側のリング)
-        this.ctx.shadowBlur = 10;
-        this.ctx.shadowColor = color;
-        this.ctx.strokeStyle = color;
-        this.ctx.lineWidth = 2;
+        this.ctx.shadowBlur = 10; this.ctx.shadowColor = color; this.ctx.strokeStyle = color; this.ctx.lineWidth = 2;
+        this.ctx.beginPath(); this.ctx.arc(x, y, r, 0, Math.PI * 2); this.ctx.stroke();
+        this.ctx.shadowBlur = 0; this.ctx.fillStyle = "#ffffff"; this.ctx.strokeStyle = "#ffffff";
+        this.ctx.lineWidth = 2; this.ctx.lineCap = 'round'; this.ctx.lineJoin = 'round';
         this.ctx.beginPath();
-        this.ctx.arc(x, y, r, 0, Math.PI * 2);
-        this.ctx.stroke();
-
-        // 2. アイコンの中身 (白一色で統一感)
-        this.ctx.shadowBlur = 0; 
-        this.ctx.fillStyle = "#ffffff";
-        this.ctx.strokeStyle = "#ffffff";
-        this.ctx.lineWidth = 2;
-        this.ctx.lineCap = 'round';
-        this.ctx.lineJoin = 'round';
-
-        this.ctx.beginPath();
-
-        if (type === 'speedup') { 
-            // イナズマのような形状
-            this.ctx.moveTo(x + 2, y - 7);
-            this.ctx.lineTo(x - 3, y);
-            this.ctx.lineTo(x + 2, y);
-            this.ctx.lineTo(x - 2, y + 7);
-            this.ctx.stroke();
-        } else if (type === 'multiball') { 
-            // 3つの小さな丸
-            this.ctx.arc(x - 5, y + 3, 2.5, 0, Math.PI*2);
-            this.ctx.closePath();
-            this.ctx.arc(x + 5, y + 3, 2.5, 0, Math.PI*2);
-            this.ctx.closePath();
-            this.ctx.arc(x, y - 5, 2.5, 0, Math.PI*2);
-            this.ctx.fill(); 
-        } else if (type === 'expand') { 
-            // 左右に広がる矢印
-            this.ctx.moveTo(x - 6, y);
-            this.ctx.lineTo(x + 6, y);
-            this.ctx.moveTo(x - 3, y - 3);
-            this.ctx.lineTo(x - 6, y);
-            this.ctx.lineTo(x - 3, y + 3);
-            this.ctx.moveTo(x + 3, y - 3);
-            this.ctx.lineTo(x + 6, y);
-            this.ctx.lineTo(x + 3, y + 3);
-            this.ctx.stroke();
-        } else if (type === 'shrink') { 
-            // 内側への矢印
-            this.ctx.moveTo(x - 7, y - 3);
-            this.ctx.lineTo(x - 2, y);
-            this.ctx.lineTo(x - 7, y + 3);
-            this.ctx.moveTo(x + 7, y - 3);
-            this.ctx.lineTo(x + 2, y);
-            this.ctx.lineTo(x + 7, y + 3);
-            this.ctx.stroke();
-        } else if (type === 'lifeup') {
-            // ハートマーク
-            this.ctx.moveTo(x, y + 2);
-            this.ctx.bezierCurveTo(x, y - 1, x - 4, y - 6, x - 7, y - 6);
-            this.ctx.bezierCurveTo(x - 11, y - 6, x - 11, y, x - 11, y);
-            this.ctx.bezierCurveTo(x - 11, y + 6, x, y + 10, x, y + 10);
-            this.ctx.bezierCurveTo(x, y + 10, x + 11, y + 6, x + 11, y);
-            this.ctx.bezierCurveTo(x + 11, y, x + 11, y - 6, x + 7, y - 6);
-            this.ctx.bezierCurveTo(x + 4, y - 6, x, y - 1, x, y + 2);
-            this.ctx.fill();
-        }
-        
+        if (type === 'speedup') { this.ctx.moveTo(x + 2, y - 7); this.ctx.lineTo(x - 3, y); this.ctx.lineTo(x + 2, y); this.ctx.lineTo(x - 2, y + 7); this.ctx.stroke(); } 
+        else if (type === 'multiball') { this.ctx.arc(x - 5, y + 3, 2.5, 0, Math.PI*2); this.ctx.closePath(); this.ctx.arc(x + 5, y + 3, 2.5, 0, Math.PI*2); this.ctx.closePath(); this.ctx.arc(x, y - 5, 2.5, 0, Math.PI*2); this.ctx.fill(); } 
+        else if (type === 'expand') { this.ctx.moveTo(x - 6, y); this.ctx.lineTo(x + 6, y); this.ctx.moveTo(x - 3, y - 3); this.ctx.lineTo(x - 6, y); this.ctx.lineTo(x - 3, y + 3); this.ctx.moveTo(x + 3, y - 3); this.ctx.lineTo(x + 6, y); this.ctx.lineTo(x + 3, y + 3); this.ctx.stroke(); } 
+        else if (type === 'shrink') { this.ctx.moveTo(x - 7, y - 3); this.ctx.lineTo(x - 2, y); this.ctx.lineTo(x - 7, y + 3); this.ctx.moveTo(x + 7, y - 3); this.ctx.lineTo(x + 2, y); this.ctx.lineTo(x + 7, y + 3); this.ctx.stroke(); } 
+        else if (type === 'lifeup') { this.ctx.font = "bold 20px sans-serif"; this.ctx.textAlign = "center"; this.ctx.textBaseline = "middle"; this.ctx.fillStyle = "#ffffff"; this.ctx.fillText("♥", x, y + 2); }
         this.ctx.restore();
     }
 
@@ -1122,74 +816,34 @@ class Game {
     }
 
     gameOver() {
-        this.state = 'GAMEOVER';
-        document.getElementById('launchMessage').classList.remove('visible');
-        document.getElementById('endTitle').textContent = CONFIG.text.gameOver;
-        document.getElementById('endTitle').style.color = "var(--danger-color)";
-        
-        // 【修正箇所】スコアを反映
-        document.getElementById('endScore').textContent = 'Score: ' + this.score;
-        
-        document.getElementById('endScreen').classList.remove('hidden');
+        this.state = 'GAMEOVER'; document.getElementById('launchMessage').classList.remove('visible');
+        document.getElementById('endTitle').textContent = CONFIG.text.gameOver; document.getElementById('endTitle').style.color = "var(--danger-color)";
+        document.getElementById('endScore').textContent = 'Score: ' + this.score; document.getElementById('endScreen').classList.remove('hidden');
         this.canvas.style.cursor = 'auto';
     }
 
     gameWin() {
-        this.state = 'WIN';
-        document.getElementById('launchMessage').classList.remove('visible');
-        document.getElementById('endTitle').textContent = CONFIG.text.gameWin;
-        document.getElementById('endTitle').style.color = "var(--success-color)";
-        
-        // 【修正箇所】スコアを反映
-        document.getElementById('endScore').textContent = 'Score: ' + this.score;
-
-        document.getElementById('endScreen').classList.remove('hidden');
+        this.state = 'WIN'; document.getElementById('launchMessage').classList.remove('visible');
+        document.getElementById('endTitle').textContent = CONFIG.text.gameWin; document.getElementById('endTitle').style.color = "var(--success-color)";
+        document.getElementById('endScore').textContent = 'Score: ' + this.score; document.getElementById('endScreen').classList.remove('hidden');
         this.canvas.style.cursor = 'auto';
     }
 }
 
-// ==========================================================================
-// グローバル & イベント処理
-// ==========================================================================
 const game = new Game();
 
-// 背景リセットボタン
-document.getElementById('resetBgBtn').addEventListener('click', () => {
-    game.bgImage.src = CONFIG.defaultBg;
-    // 画像ロードイベントを再設定してリセット
-    game.bgImage.onload = () => game.resizeAndReset();
-    if (!CONFIG.defaultBg) {
-        // デフォルトが空なら即座にリサイズ
-        game.resizeAndReset();
-    }
-    showToast(CONFIG.text.bgReset);
-});
+// イベントリスナー
+document.getElementById('muteBtn').addEventListener('click', (e) => { e.stopPropagation(); SoundManager.toggleMute(); });
+document.getElementById('darkModeBtn').addEventListener('click', (e) => { e.stopPropagation(); document.body.classList.toggle('dark'); });
+// ★追加: ブロック模様切り替え
+document.getElementById('imgToggleBtn').addEventListener('click', (e) => { e.stopPropagation(); game.toggleBlockImage(); });
 
-// ミュートボタン
-document.getElementById('muteBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    SoundManager.toggleMute();
-});
-
-// ダークモード切替ボタン
-document.getElementById('darkModeBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    document.body.classList.toggle('dark');
-});
-
-// トースト通知表示
 function showToast(message) {
     const existing = document.querySelector('.toast-notification');
     if (existing) existing.remove();
-    const toast = document.createElement('div');
-    toast.className = 'toast-notification';
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add('show'));
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 2000);
+    const toast = document.createElement('div'); toast.className = 'toast-notification'; toast.textContent = message;
+    document.body.appendChild(toast); requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2000);
 }
 </script>
 </body>
