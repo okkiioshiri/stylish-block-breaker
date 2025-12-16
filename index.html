@@ -243,14 +243,14 @@
     <!-- スタート画面 -->
     <div id="startScreen" class="screen-overlay">
         <h1>BLOCK BREAKER</h1>
-        <p class="sub-text blink">Click Anywhere to Start</p>
+        <p class="sub-text blink">Click to Start</p>
     </div>
 
     <!-- ゲームオーバー画面 -->
     <div id="endScreen" class="screen-overlay hidden">
         <h1 id="endTitle">GAME OVER</h1>
         <p class="sub-text" id="endScore">Score: 0</p>
-        <p class="sub-text blink">Click Anywhere to Retry</p>
+        <p class="sub-text blink">Click to Retry</p>
     </div>
 </div>
 
@@ -265,8 +265,8 @@
 
 <script>
 /**
- * Stylish Block Breaker v23 - HTML Background Config
- * 設定値は以下の CONFIG オブジェクトで一元管理
+ * Stylish Block Breaker v24
+ * Revised for Stylish Item Design & Fixed Score Display
  */
 
 const CONFIG = {
@@ -312,9 +312,9 @@ const CONFIG = {
         probability: 0.05,    // 出現確率 (0.0 ～ 1.0)
         dropSpeed: 0.5,       // 落下速度 (ゆっくり)
         types: [
-            { type: 'speedup', color: '#007aff', text: 'SPEED UP (3s)' },
-            { type: 'multiball', color: '#ff9500', text: 'MULTI BALL' },
-            { type: 'expand', color: '#34c759', text: 'WIDTH x2' },
+            { type: 'speedup', color: '#00e5ff', text: 'SPEED UP (3s)' },
+            { type: 'multiball', color: '#ffcc00', text: 'MULTI BALL' },
+            { type: 'expand', color: '#32d74b', text: 'WIDTH x2' },
             { type: 'shrink', color: '#ff3b30', text: 'WIDTH 1/2' },
             { type: 'lifeup', color: '#ff2d55', text: 'EXTRA LIFE' } 
         ]
@@ -1001,35 +1001,50 @@ class Game {
         this.ctx.restore();
     }
 
-    // アイテムアイコン描画 (Canvas描画)
+    /**
+     * 【修正箇所】クールでスタイリッシュなアイテムアイコン描画
+     */
     drawItemIcon(x, y, type, color) {
         const r = 14; 
-        this.ctx.fillStyle = color;
+        
+        this.ctx.save();
+
+        // 1. ネオンのような発光エフェクト (外側のリング)
+        this.ctx.shadowBlur = 10;
+        this.ctx.shadowColor = color;
+        this.ctx.strokeStyle = color;
+        this.ctx.lineWidth = 2;
         this.ctx.beginPath();
         this.ctx.arc(x, y, r, 0, Math.PI * 2);
-        this.ctx.fill();
-        
-        this.ctx.strokeStyle = '#fff';
-        this.ctx.fillStyle = '#fff';
+        this.ctx.stroke();
+
+        // 2. アイコンの中身 (白一色で統一感)
+        this.ctx.shadowBlur = 0; 
+        this.ctx.fillStyle = "#ffffff";
+        this.ctx.strokeStyle = "#ffffff";
         this.ctx.lineWidth = 2;
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
+
         this.ctx.beginPath();
 
         if (type === 'speedup') { 
-            this.ctx.moveTo(x + 2, y - 6);
-            this.ctx.lineTo(x - 3, y + 1);
-            this.ctx.lineTo(x + 2, y + 1);
+            // イナズマのような形状
+            this.ctx.moveTo(x + 2, y - 7);
+            this.ctx.lineTo(x - 3, y);
+            this.ctx.lineTo(x + 2, y);
             this.ctx.lineTo(x - 2, y + 7);
+            this.ctx.stroke();
         } else if (type === 'multiball') { 
+            // 3つの小さな丸
             this.ctx.arc(x - 5, y + 3, 2.5, 0, Math.PI*2);
-            this.ctx.rect(x + 2, y - 5, 0, 0); 
+            this.ctx.closePath();
             this.ctx.arc(x + 5, y + 3, 2.5, 0, Math.PI*2);
-            this.ctx.rect(x, y - 5, 0, 0); 
+            this.ctx.closePath();
             this.ctx.arc(x, y - 5, 2.5, 0, Math.PI*2);
             this.ctx.fill(); 
-            return;
         } else if (type === 'expand') { 
+            // 左右に広がる矢印
             this.ctx.moveTo(x - 6, y);
             this.ctx.lineTo(x + 6, y);
             this.ctx.moveTo(x - 3, y - 3);
@@ -1038,26 +1053,29 @@ class Game {
             this.ctx.moveTo(x + 3, y - 3);
             this.ctx.lineTo(x + 6, y);
             this.ctx.lineTo(x + 3, y + 3);
+            this.ctx.stroke();
         } else if (type === 'shrink') { 
-            this.ctx.moveTo(x - 6, y - 3);
+            // 内側への矢印
+            this.ctx.moveTo(x - 7, y - 3);
             this.ctx.lineTo(x - 2, y);
-            this.ctx.lineTo(x - 6, y + 3);
-            this.ctx.moveTo(x + 6, y - 3);
+            this.ctx.lineTo(x - 7, y + 3);
+            this.ctx.moveTo(x + 7, y - 3);
             this.ctx.lineTo(x + 2, y);
-            this.ctx.lineTo(x + 6, y + 3);
+            this.ctx.lineTo(x + 7, y + 3);
+            this.ctx.stroke();
         } else if (type === 'lifeup') {
-            this.ctx.beginPath();
-            this.ctx.moveTo(x, y + 3);
-            this.ctx.bezierCurveTo(x, y, x - 4, y - 6, x - 7, y - 6);
-            this.ctx.bezierCurveTo(x - 12, y - 6, x - 12, y + 1, x - 12, y + 1);
-            this.ctx.bezierCurveTo(x - 12, y + 7, x, y + 11, x, y + 11);
-            this.ctx.bezierCurveTo(x, y + 11, x + 12, y + 7, x + 12, y + 1);
-            this.ctx.bezierCurveTo(x + 12, y + 1, x + 12, y - 6, x + 7, y - 6);
-            this.ctx.bezierCurveTo(x + 4, y - 6, x, y, x, y + 3);
+            // ハートマーク
+            this.ctx.moveTo(x, y + 2);
+            this.ctx.bezierCurveTo(x, y - 1, x - 4, y - 6, x - 7, y - 6);
+            this.ctx.bezierCurveTo(x - 11, y - 6, x - 11, y, x - 11, y);
+            this.ctx.bezierCurveTo(x - 11, y + 6, x, y + 10, x, y + 10);
+            this.ctx.bezierCurveTo(x, y + 10, x + 11, y + 6, x + 11, y);
+            this.ctx.bezierCurveTo(x + 11, y, x + 11, y - 6, x + 7, y - 6);
+            this.ctx.bezierCurveTo(x + 4, y - 6, x, y - 1, x, y + 2);
             this.ctx.fill();
-            return;
         }
-        this.ctx.stroke();
+        
+        this.ctx.restore();
     }
 
     updateUI() {
@@ -1070,6 +1088,10 @@ class Game {
         document.getElementById('launchMessage').classList.remove('visible');
         document.getElementById('endTitle').textContent = CONFIG.text.gameOver;
         document.getElementById('endTitle').style.color = "var(--danger-color)";
+        
+        // 【修正箇所】スコアを反映
+        document.getElementById('endScore').textContent = 'Score: ' + this.score;
+        
         document.getElementById('endScreen').classList.remove('hidden');
         this.canvas.style.cursor = 'auto';
     }
@@ -1079,6 +1101,10 @@ class Game {
         document.getElementById('launchMessage').classList.remove('visible');
         document.getElementById('endTitle').textContent = CONFIG.text.gameWin;
         document.getElementById('endTitle').style.color = "var(--success-color)";
+        
+        // 【修正箇所】スコアを反映
+        document.getElementById('endScore').textContent = 'Score: ' + this.score;
+
         document.getElementById('endScreen').classList.remove('hidden');
         this.canvas.style.cursor = 'auto';
     }
