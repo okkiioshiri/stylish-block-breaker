@@ -3,26 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>stylish block breaker</title>
+<title>block breaker</title>
+<style>
 <style>
     /* ==========================================================================
        1. デザイン設定 (CSS変数)
        ========================================================================== */
     :root {
-        --bg-color: #f2f2f7;
-        --card-bg: #ffffff;
-        --text-color: #1c1c1e;
-        --btn-primary-bg: #1c1c1e;
-        --btn-primary-text: #ffffff;
-        --highlight-color: #007aff;
-        --danger-color: #ff3b30;
-        --success-color: #34c759;
-        --shadow-color: rgba(0, 0, 0, 0.1);
-        --tooltip-bg: rgba(40, 40, 40, 0.95);
-        --tooltip-text: #ffffff;
+        --bg-color: #f2f2f7;           /* 背景色 (ライト) */
+        --card-bg: #ffffff;            /* カード・ボタン背景 */
+        --text-color: #1c1c1e;         /* 通常文字色 */
+        --btn-primary-bg: #1c1c1e;     /* メインボタン背景 */
+        --btn-primary-text: #ffffff;   /* メインボタン文字 */
+        
+        --highlight-color: #007aff;    /* 強調色 (青) */
+        --danger-color: #ff3b30;       /* 警告色 (赤) */
+        --success-color: #34c759;      /* 成功色 (緑) */
+        
+        --shadow-color: rgba(0, 0, 0, 0.1);    /* 影の色 */
+        --tooltip-bg: rgba(40, 40, 40, 0.95);  /* ツールチップ背景 */
+        --tooltip-text: #ffffff;               /* ツールチップ文字 */
+        
         --font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
     }
 
+    /* ダークモード時の配色上書き */
     body.dark {
         --bg-color: #1c1c1e;
         --card-bg: #2c2c2e;
@@ -36,42 +41,50 @@
         --tooltip-text: #1c1c1e;
     }
 
+    /* ==========================================================================
+       2. 全体レイアウト
+       ========================================================================== */
     body {
         font-family: var(--font-family);
         background: var(--bg-color);
         color: var(--text-color);
         margin: 0;
+        
+        /* 画面中央寄せの設定 */
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+        
         min-height: 100vh;
-        overflow: hidden;
-        transition: background 0.3s, color 0.3s;
+        overflow: hidden; /* スクロール防止 */
+        transition: background 0.3s, color 0.3s; /* ダークモード切替時のアニメーション */
         user-select: none;
         touch-action: none;
     }
 
+    /* ヘッダー（スコア、時間、ライフ表示） */
     .game-header-bar {
         width: 100%;
         max-width: 1000px;
         display: grid;
-        grid-template-columns: 1fr auto 1fr;
+        grid-template-columns: 1fr auto 1fr; /* 左・中央・右に分割 */
         align-items: center;
         padding: 0 10px 10px 10px;
         box-sizing: border-box;
+        
         font-size: 20px;
         font-weight: bold;
         color: var(--text-color);
         z-index: 100;
-        pointer-events: none;
+        pointer-events: none; /* クリックを通過させる */
     }
-    
-    /* 各要素の配置指定 */
-    #scoreDisplay { justify-self: start; }
-    #timeDisplay { justify-self: center; font-variant-numeric: tabular-nums; } /* 数字の幅を揃える */
-    #livesDisplay { justify-self: end; }
 
+    /* ヘッダー内の各要素の配置 */
+    #scoreDisplay { justify-self: start; }
+    #timeDisplay { justify-self: center; font-variant-numeric: tabular-nums; } /* 数字の幅を等幅に */
+    #livesDisplay { justify-self: end; }
+    
     .status-item {
         pointer-events: auto;
         display: flex;
@@ -79,7 +92,9 @@
         gap: 8px;
     }
 
-    /* ゲームエリア */
+    /* ==========================================================================
+       3. ゲーム画面エリア
+       ========================================================================== */
     .game-container {
         position: relative;
         width: 100%;
@@ -93,26 +108,31 @@
         box-sizing: border-box;
         cursor: pointer;
         min-height: 300px; 
+        
         -webkit-tap-highlight-color: transparent;
         touch-action: none;
         z-index: 1;
     }
+
+    /* 画像ドラッグ時の枠線ハイライト */
     .game-container.drag-over {
         border-color: var(--highlight-color);
         opacity: 0.8;
     }
 
+    /* ゲーム描画キャンバス */
     canvas {
         display: block;
         width: 100%;
         height: 100%;
-        cursor: none; 
+        cursor: none; /* マウスカーソルを消す */
     }
 
-    /* UIレイヤー */
+    /* UIレイヤー（メッセージなどを表示する透明な層） */
     .ui-layer {
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         pointer-events: none;
         display: flex;
         flex-direction: column;
@@ -122,21 +142,26 @@
         z-index: 10;
     }
 
-    /* オーバーレイ */
+    /* ==========================================================================
+       4. オーバーレイ画面（スタート・終了画面）
+       ========================================================================== */
     .screen-overlay {
         position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.7);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         z-index: 50;
-        backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px); /* 背景ぼかし */
         transition: opacity 0.3s;
         pointer-events: auto; 
         color: #fff;
     }
+    
+    /* 非表示時のスタイル */
     .screen-overlay.hidden { 
         opacity: 0; 
         pointer-events: none; 
@@ -144,16 +169,26 @@
     }
 
     h1, p.sub-text {
-        font-size: 56px; margin: 0 0 10px 0; letter-spacing: 0.05em; 
+        font-size: 56px;
+        margin: 0 0 10px 0;
+        letter-spacing: 0.05em; 
         pointer-events: none; 
         text-align: center;
     }
-    p.sub-text { font-size: 20px; opacity: 0.8; margin-bottom: 10px; }
+    
+    p.sub-text {
+        font-size: 20px;
+        opacity: 0.8;
+        margin-bottom: 10px;
+    }
     
     .blink { animation: blink 1.5s infinite; }
     @keyframes blink { 50% { opacity: 0.5; } }
 
-    /* ボタングループ */
+    /* ==========================================================================
+       5. ボタン類のデザイン
+       ========================================================================== */
+    /* リザルト画面のボタン群 */
     .btn-group {
         display: flex;
         gap: 15px;
@@ -183,7 +218,7 @@
     .action-btn:active { transform: scale(0.95); }
     .action-btn svg { width: 18px; height: 18px; fill: currentColor; }
 
-    /* 固定ボタン */
+    /* 右上の丸い固定ボタン */
     .fixed-btn {
         position: fixed; top: 15px; 
         width: 44px; height: 44px; padding: 0;
@@ -194,92 +229,135 @@
         color: var(--text-color);
         border: 1px solid var(--border-color);
         box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        display: inline-flex; align-items: center; justify-content: center;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         cursor: pointer;
         transition: all 0.2s;
     }
     .fixed-btn:hover { transform: translateY(-1px); opacity: 0.9; }
     .fixed-btn:active { transform: translateY(1px); }
     
+    /* 固定ボタンの位置調整 */
     #darkModeBtn { right: 15px; }
     #muteBtn { right: 70px; }
     #imgToggleBtn { right: 125px; }
+    
     .fixed-btn svg { width: 22px; height: 22px; fill: currentColor; }
     #muteBtn.muted svg path.sound-wave { display: none; }
     #muteBtn.muted .mute-x { display: block; }
 
-    /* ツールチップ・通知 */
+    /* ==========================================================================
+       6. 通知・ツールチップ
+       ========================================================================== */
     #global-tooltip {
-        position: fixed; background: var(--tooltip-bg); color: var(--tooltip-text);
+        position: fixed;
+        background: var(--tooltip-bg); color: var(--tooltip-text);
         padding: 8px 12px; font-size: 12px; border-radius: 6px;
         pointer-events: none !important; 
-        z-index: 30000; opacity: 0; transition: opacity 0.15s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15); backdrop-filter: blur(4px); white-space: nowrap; font-weight: 500;
+        z-index: 30000;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        backdrop-filter: blur(4px);
+        white-space: nowrap; font-weight: 500;
     }
+    
     .toast-notification {
-        position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+        position: fixed; bottom: 80px; left: 50%;
+        transform: translateX(-50%);
         background: var(--tooltip-bg); color: var(--tooltip-text);
         padding: 8px 20px; border-radius: 30px;
-        font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; z-index: 20000;
+        font-size: 14px; font-weight: 600;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 20000;
         transition: opacity 0.3s ease, transform 0.3s ease;
     }
     .toast-notification.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     
     #launchMessage {
-        position: absolute; bottom: 80px; left: 0; width: 100%; text-align: center;
-        color: #fff; font-size: 16px; font-weight: bold; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        position: absolute; bottom: 80px; left: 0; width: 100%;
+        text-align: center;
+        color: #fff; font-size: 16px; font-weight: bold;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 20;
     }
     #launchMessage.visible { opacity: 1; animation: blink 1.5s infinite; }
+    
     .demo-indicator {
-        position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-        color: rgba(255,255,255,0.5); font-size: 14px; letter-spacing: 2px; pointer-events: none;
+        position: absolute; top: 20px; left: 50%;
+        transform: translateX(-50%);
+        color: rgba(255,255,255,0.5);
+        font-size: 14px; letter-spacing: 2px;
+        pointer-events: none;
     }
 </style>
 </head>
 <body class="dark"> 
 
-<!-- ボタンのツールチップはJSで設定されます -->
+<!-- ===========================================================================
+     HTML構造エリア
+     =========================================================================== -->
+
+<!-- 1. 右上の固定ボタン群 -->
 <button id="imgToggleBtn" class="fixed-btn" aria-label="Toggle Image">
-    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+    <svg viewBox="0 0 24 24">
+        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+    </svg>
 </button>
+
 <button id="muteBtn" class="fixed-btn" aria-label="Toggle Mute">
     <svg viewBox="0 0 24 24">
         <path d="M3 9v6h4l5 5V4L7 9H3z"/>
         <path class="sound-wave" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-        <g class="mute-x" style="display:none"><path d="M16 16l4-4m0 0l-4-4m4 4l-4 4m4-4l-4-4" stroke="currentColor" stroke-width="2" /></g>
+        <g class="mute-x" style="display:none">
+            <path d="M16 16l4-4m0 0l-4-4m4 4l-4 4m4-4l-4-4" stroke="currentColor" stroke-width="2" />
+        </g>
     </svg>
 </button>
+
 <button id="darkModeBtn" class="fixed-btn" aria-label="Toggle Theme">
-    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c4.97 0 9-4.03 9-9a9 9 0 0 0-9-9z"/></svg>
+    <svg viewBox="0 0 24 24">
+        <path d="M12 3a9 9 0 0 0 0 18c4.97 0 9-4.03 9-9a9 9 0 0 0-9-9z"/>
+    </svg>
 </button>
 
+<!-- 2. ヘッダーバー（スコア、時間、ライフ） -->
 <div class="game-header-bar">
     <div class="status-item" id="scoreDisplay">SCORE: 0</div>
     <div class="status-item" id="timeDisplay">00:00</div>
-    <div class="status-item" id="livesDisplay"><span style="color: var(--danger-color)">♥♥♥</span></div>
+    <div class="status-item" id="livesDisplay">
+        <span style="color: var(--danger-color)">♥♥♥</span>
+    </div>
 </div>
 
+<!-- 3. メインゲームコンテナ -->
 <div class="game-container" id="gameContainer">
+    <!-- 描画領域 -->
     <canvas id="gameCanvas"></canvas>
     
+    <!-- UIレイヤー（発射メッセージなど） -->
     <div class="ui-layer">
         <div id="launchMessage"></div>
     </div>
 
-    <!-- スタート画面 -->
+    <!-- スタート画面オーバーレイ -->
     <div id="startScreen" class="screen-overlay">
         <h1 id="titleStart">BLOCK BREAKER</h1>
         <p class="sub-text blink" id="subStart">Click to Start</p>
     </div>
 
-    <!-- リザルト画面 -->
+    <!-- リザルト画面オーバーレイ（初期状態はhidden） -->
     <div id="endScreen" class="screen-overlay hidden">
         <h1 id="endTitle">GAME OVER</h1>
         <p class="sub-text" id="endScore">Score: 0</p>
         <p class="sub-text" id="endTime">Time: 0:00</p> 
-        <p class="sub-text" id="timeBonus" style="font-size:16px; color:var(--highlight-color); display:none;">Time Bonus: x1.0</p>
+        <p class="sub-text" id="timeBonus" style="font-size:16px; color:var(--highlight-color); display:none;">
+            Time Bonus: x1.0
+        </p>
         
+        <!-- リザルト画面のボタングループ -->
         <div class="btn-group">
              <button id="tweetBtn" class="action-btn">
                 <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
@@ -297,8 +375,9 @@
 </div>
 
 <script>
+    
 // =============================================================================
-// ▼▼▼ ユーザー設定エリア (ここを編集してください) ▼▼▼
+// ▼▼▼ ユーザー設定エリア ▼▼▼
 // =============================================================================
 
 const USER_SETTINGS = {
@@ -306,10 +385,10 @@ const USER_SETTINGS = {
     backgroundImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/24XnbuoP.jpg",
     blockOverlayImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/lUMPD61O.jpg", 
     
-    // 2. SNSシェア時に追加されるURL
+    // 2. SNSシェアURL
     shareUrl: "https://okkiioshiri.github.io/stylish-block-breaker/",
 
-    // 3. テキスト設定 (ここを変更するとゲーム内の文字が変わります)
+    // 3. テキスト設定
     TEXT: {
         // UI表示
         scoreLabel: "SCORE:",
@@ -317,42 +396,41 @@ const USER_SETTINGS = {
         launchMessage: "CLICK TO LAUNCH",
         demoIndicator: "DEMO PLAY (AUTO)",
         
-        // スタート画面・終了画面タイトル
+        // タイトル・開始
         titleStart: "Sperm EXplosion",
         subStart: "Click to Start",
+        
+        // 終了画面
         titleGameOver: "GAME OVER",
         titleGameWin: "Congratulations!",
-        
-        // リザルト画面
         resultScore: "Score:",
         resultTime: "Time:",
         resultTimeBonus: "Time Bonus:",
         
-        // ボタンの文字
+        // ボタン文字
         btnPost: "Post",
         btnViewBg: "View Image",
         btnRetry: "Retry",
 
-        // シェア機能
-        shareTitle: "",
+        // シェア文言
         shareResultWin: "Cleared!",
         shareResultLose: "Game Over",
-        shareHashTags: "SpermEXplosion", // カンマ区切り
+        shareHashTags: "SpermEXplosion",
         
-        // 通知・メッセージ
+        // 通知メッセージ
         msgBgChanged: "背景画像を変更しました",
         msgBgReset: "背景をリセットしました",
         msgNoImage: "画像が設定されていません",
         msgBlockImgOn: "ブロック: 画像モード",
         msgBlockImgOff: "ブロック: モザイクモード",
         msgViewBg: "画面クリックで戻ります", 
-
-        // ツールチップ (マウスホバー時の説明)
+        
+        // ツールチップ
         tooltipImgBtn: "ブロック画像を変更",
         tooltipMuteBtn: "ミュート切替",
         tooltipDarkBtn: "ダークモード切替",
         
-        // アイテム取得時のテキスト
+        // アイテム名
         itemSpeedUp: "SPEED UP (+1000pts)",
         itemMultiBall: "MULTI BALL (+500pts)",
         itemExpand: "WIDTH x2 (+500pts)",
@@ -363,33 +441,67 @@ const USER_SETTINGS = {
     }
 };
 
-// ゲームバランス・詳細設定
 const GAME_CONFIG = {
     baseWidth: 1000,
     safeZoneHeight: 150,
     
+    // パドル設定
     paddle: { 
-        width: 80, height: 16, color: '#fff', bottomOffset: 30, highlightColor: '#007aff'
+        width: 80,
+        height: 16,
+        color: '#fff',
+        bottomOffset: 30,
+        highlightColor: '#007aff'
     },
+
+    // ボール設定
     ball: { 
-        radius: 4, color: '#fff', bombColor: '#ff3b30', 
-        normalSpeed: 2.5, fastSpeed: 9, smashSpeedMultiplier: 2.0
+        radius: 4,
+        color: '#fff',
+        bombColor: '#ff3b30',
+        normalSpeed: 2.5,
+        fastSpeed: 9,
+        smashSpeedMultiplier: 2.0
     }, 
+
+    // ブロック設定
     blocks: { 
-        cols: 32, rowHeight: 14, opacity: 0.5,
+        cols: 32,
+        rowHeight: 14,
+        opacity: 0.5,
         offsetTop: 0, 
         padding: 0
     },
+
+    // ターゲット（卵）設定
     egg: {
-        radius: 14, innerColor: 'rgba(255, 105, 180, 0.7)', membraneColor: 'rgba(255, 255, 255, 0.2)', 
-        glowColor: '#ff69b4', speed: 1.2, wanderRows: 10
+        radius: 14,
+        innerColor: 'rgba(255, 105, 180, 1)', // 核
+        membraneColor: 'rgba(255, 255, 255, 0.2)',  // 膜
+        glowColor: '#ff69b4',
+        speed: 1.2,
+        wanderRows: 10
     },
-    explosion: { rangeX: 2.5, rangeY: 5.5 },
+
+    // 爆発範囲設定
+    explosion: { 
+        rangeX: 2.5,
+        rangeY: 5.5
+    },
+
+    // ブロックの色リスト
     colors: [
-        '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0', '#a0a0a0', '#909090', '#808080', '#707070', '#606060'
+        '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0',
+        '#a0a0a0', '#909090', '#808080', '#707070', '#606060'
     ],
+
+    // スコア配点
     score: {
-        block: 100, paddleHit: 10, smashHit: 20, death: -1000, implantation: 5000
+        block: 100,
+        paddleHit: 10,
+        smashHit: 50,
+        death: -1000,
+        implantation: 5000
     },
     items: {
         probability: 0.05, dropSpeed: 0.5,
@@ -402,13 +514,23 @@ const GAME_CONFIG = {
             { type: 'super_explosion', color: 'rainbow', text: USER_SETTINGS.TEXT.itemSuper, score: 5000 },
             { type: 'bomb', color: '#cc0d02', text: USER_SETTINGS.TEXT.itemBomb, score: 500 }
         ]
+    },
+    // デモプレイのAIの挙動
+    ai: {
+        smashChance: 0.015, // 1フレームあたりの確率
+        launchChance: 0.05,
+        reactionBias: 0.15, // パドル移動の反応速度
+        itemPriorityY: 0.3, // 画面の上部何割からアイテムを認識するか
+        safeDistance: 350   // ボールがここまで来たらアイテムよりボール優先
     }
 };
 
-// 設定のマージ
 GAME_CONFIG.defaultBg = USER_SETTINGS.backgroundImage;
 GAME_CONFIG.blocks.overlayImage = USER_SETTINGS.blockOverlayImage;
 
+// =============================================================================
+// Sound Manager
+// =============================================================================
 const SoundManager = {
     ctx: null, isMuted: false,
     init() {
@@ -433,61 +555,229 @@ const SoundManager = {
     }
 };
 
+// =============================================================================
+// Input Handler
+// =============================================================================
+class InputHandler {
+    constructor(game) {
+        this.game = game;
+        this.canvasRect = null;
+        this.init();
+    }
+    init() {
+        const c = document.getElementById('gameContainer');
+        window.addEventListener('resize', () => this.updateRect());
+        window.addEventListener('scroll', () => this.updateRect());
+        window.addEventListener('mousemove', e => this.handleMove(e.clientX));
+        c.addEventListener('touchmove', e => { if(!this.game.isDemo){ e.preventDefault(); this.handleMove(e.touches[0].clientX); } }, {passive:false});
+        c.addEventListener('mousedown', e => this.handleClick(e));
+        c.addEventListener('touchstart', e => { if(!e.target.closest('button')){ e.preventDefault(); this.handleClick(e); } }, {passive:false});
+        document.addEventListener('keydown', e => this.handleKey(e));
+        // Drag & Drop
+        c.addEventListener('dragover', e => {e.preventDefault(); e.stopPropagation(); c.classList.add('drag-over');});
+        c.addEventListener('dragleave', e => {e.preventDefault(); e.stopPropagation(); c.classList.remove('drag-over');});
+        c.addEventListener('drop', e => {
+            e.preventDefault(); e.stopPropagation(); c.classList.remove('drag-over');
+            const f = e.dataTransfer.files[0]; if(f && f.type.startsWith('image/')) this.game.loadBackground(f);
+        });
+        this.updateRect();
+    }
+    updateRect() { this.canvasRect = document.getElementById('gameCanvas').getBoundingClientRect(); }
+    handleMove(cx) {
+        if(this.game.isDemo) return;
+        if(!this.canvasRect || this.canvasRect.width === 0) this.updateRect();
+        this.game.paddle.x = (cx - this.canvasRect.left) * (this.game.canvas.width / this.canvasRect.width) - this.game.paddle.width / 2;
+    }
+    handleClick(e) {
+        if(e.target.closest('button')) return;
+        SoundManager.init();
+        this.game.handleClick();
+    }
+    handleKey(e) {
+        if((e.key === 'd' || e.key === 'D') && this.game.state === 'MENU') this.game.startDemo();
+        if(this.game.isDemo && this.game.state === 'PLAYING') {
+            const k = parseInt(e.key);
+            if(k > 0 && k <= 7) this.game.forceDropItem(k-1);
+        }
+    }
+}
+
+// =============================================================================
+// AI Controller (Demo Logic)
+// =============================================================================
+class AIController {
+    constructor(game) { this.game = game; }
+    update() {
+        const balls = this.game.balls;
+        const egg = this.game.egg;
+        const paddle = this.game.paddle;
+        const height = this.game.canvas.height;
+        
+        // 1. ターゲットボールの選定 (最も危険なボール)
+        let targetBall = null;
+        let maxScore = -Infinity;
+        balls.forEach(b => {
+            if (b.active) {
+                // 基本スコアはY座標 (下にいるほど優先)
+                let score = b.y;
+                // 下向きならさらに優先
+                if (b.dy > 0) score += 500;
+                // 卵の近くにいるならさらに優先
+                if (egg && Math.sqrt((b.x - egg.x)**2 + (b.y - egg.y)**2) < 200) score += 200;
+                
+                if (score > maxScore) { maxScore = score; targetBall = b; }
+            }
+        });
+
+        let targetX = paddle.x + paddle.width / 2;
+
+        if (targetBall) {
+            targetX = targetBall.x;
+
+            // 2. スマッシュの判断
+            // ボールが下向き & 十分低い位置 & まだ押し込んでない & 確率
+            if (targetBall.dy > 0 && 
+                targetBall.y > height - 250 && 
+                this.game.pushTimer === 0 && 
+                Math.random() < GAME_CONFIG.ai.smashChance) {
+                this.game.pushTimer = 10;
+            }
+        }
+
+        // 3. アイテム回収ロジック
+        let bestItem = null;
+        let minDist = Infinity;
+        const currentTargetX = targetBall ? targetBall.x : targetX;
+
+        this.game.items.forEach(i => {
+            // ある程度落ちてきたアイテムを狙う
+            if (i.y > height * GAME_CONFIG.ai.itemPriorityY) {
+                let d = Math.abs(i.x - currentTargetX);
+                if (d < minDist) { minDist = d; bestItem = i; }
+            }
+        });
+
+        if (bestItem) {
+            // ボールが「安全」ならアイテムを優先する
+            // 安全定義: ボールが無い OR ボールが上向き OR ボールがまだ高い位置にある
+            const isSafe = !targetBall || targetBall.dy < 0 || targetBall.y < height - GAME_CONFIG.ai.safeDistance;
+            
+            if (isSafe) {
+                targetX = bestItem.x;
+            } else if (Math.abs(bestItem.x - targetX) < 120) {
+                // ボールが危険でも、アイテムが近くにあれば少し寄り道をさせて人間らしさを出す
+                targetX = targetX * 0.6 + bestItem.x * 0.4;
+            }
+        }
+
+        // 4. パドル移動 (少し遅延させて人間らしさを出す)
+        paddle.x += (targetX + Math.sin(Date.now() * 0.005) * 15 - (paddle.x + paddle.width / 2)) * GAME_CONFIG.ai.reactionBias;
+
+        // 5. 発射
+        if (balls.find(b => b.isAttached) && Math.random() < GAME_CONFIG.ai.launchChance) {
+            this.game.tryLaunch();
+        }
+    }
+}
+
+// =============================================================================
+// Entities (Ball, Paddle, etc.)
+// =============================================================================
+class Paddle {
+    constructor(width) {
+        this.width = width;
+        this.x = 0;
+    }
+    // パドルはゲームロジックと密結合しているため、描画メソッドのみ持つ
+    draw(ctx, y, height, isHighlight) {
+        ctx.fillStyle = GAME_CONFIG.paddle.color;
+        if (isHighlight) { ctx.shadowBlur = 20; ctx.shadowColor = GAME_CONFIG.paddle.highlightColor; }
+        else ctx.shadowBlur = 0;
+        ctx.fillRect(this.x, y, this.width, height);
+        ctx.shadowBlur = 0;
+    }
+}
+
+class Ball {
+    constructor(x, y, isAttached) {
+        this.x = x; this.y = y; this.dx = 0; this.dy = 0;
+        this.radius = GAME_CONFIG.ball.radius;
+        this.active = true;
+        this.isAttached = isAttached;
+        this.isSmashing = false;
+        this.trail = [];
+    }
+    draw(ctx, isBomb) {
+        if (!this.active) return;
+        // Trail
+        if (this.isSmashing && this.trail.length) {
+            ctx.shadowColor = 'rgba(0,191,255,0.5)'; ctx.shadowBlur = 4; ctx.beginPath();
+            this.trail.forEach((p, i) => { if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y); });
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = this.radius * 2; ctx.stroke(); ctx.shadowBlur = 0;
+        }
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.isAttached ? -Math.PI / 2 : Math.atan2(this.dy, this.dx));
+        
+        const bc = isBomb ? GAME_CONFIG.ball.bombColor : GAME_CONFIG.ball.color;
+        ctx.shadowColor = isBomb ? 'rgba(255,0,0,1)' : 'rgba(0,100,255,0.8)';
+        ctx.shadowBlur = isBomb ? 25 : 6;
+        
+        ctx.fillStyle = bc; ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fill();
+        if (!this.isAttached) {
+            ctx.beginPath(); ctx.moveTo(0, 0); const tm = Date.now();
+            for (let i = 0; i <= 25; i += 2) ctx.lineTo(-i, Math.sin(i * 0.3 - tm * 0.07) * (i / 25) * 6);
+            ctx.strokeStyle = bc; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke();
+        }
+        ctx.restore();
+    }
+}
+
+// =============================================================================
+// Main Game Class
+// =============================================================================
 class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.blurredBgCanvas = document.createElement('canvas');
         this.state = 'MENU'; this.score = 0; this.lives = 3; this.gameStartTime = 0;
-        this.paddle = { x: 0, width: GAME_CONFIG.paddle.width };
+        
+        this.paddle = new Paddle(GAME_CONFIG.paddle.width);
         this.balls = []; this.blocks = []; this.items = []; this.particles = []; this.winParticles = [];
+        
         this.speedUpEndTime = 0; this.bombNextHit = false; this.pushTimer = 0; this.shakeTime = 0;
         this.initDone = false; this.useOverlayImage = !!GAME_CONFIG.blocks.overlayImage;
         this.bgImage = new Image(); this.bgImage.crossOrigin = "anonymous";
         this.blockImage = new Image(); this.blockImage.crossOrigin = "anonymous";
         if (GAME_CONFIG.blocks.overlayImage) this.blockImage.src = GAME_CONFIG.blocks.overlayImage;
         
-        this.canvasRect = null; 
+        this.inputHandler = new InputHandler(this);
+        this.aiController = new AIController(this);
         
-        // 時間表示のキャッシュ用
         this.lastTimeStr = "";
-
-        // 初期化時にHTML上のテキストを更新
         this.applyTextSettings();
 
         const startInit = () => { if(this.initDone)return; this.initDone=true; this.resizeAndReset(); };
         if (GAME_CONFIG.defaultBg) { this.bgImage.onload=startInit; this.bgImage.onerror=startInit; this.bgImage.src=GAME_CONFIG.defaultBg; setTimeout(startInit,3000); } else { startInit(); }
-        this.initInput();
+        
         const loop = () => { this.update(); this.draw(); requestAnimationFrame(loop); };
         requestAnimationFrame(loop);
     }
 
+    // --- Setup & UI ---
     applyTextSettings() {
         const T = USER_SETTINGS.TEXT;
         document.getElementById('titleStart').textContent = T.titleStart;
         document.getElementById('subStart').textContent = T.subStart;
         document.getElementById('launchMessage').textContent = T.launchMessage;
-        
         document.getElementById('imgToggleBtn').setAttribute('data-tooltip', T.tooltipImgBtn);
         document.getElementById('muteBtn').setAttribute('data-tooltip', T.tooltipMuteBtn);
         document.getElementById('darkModeBtn').setAttribute('data-tooltip', T.tooltipDarkBtn);
-        
         document.getElementById('lblTweet').textContent = T.btnPost;
         document.getElementById('lblViewBg').textContent = T.btnViewBg;
         document.getElementById('lblRetry').textContent = T.btnRetry;
-        
         this.updateUI();
-    }
-
-    toggleBlockImage() {
-        if(!GAME_CONFIG.blocks.overlayImage){ showToast(USER_SETTINGS.TEXT.msgNoImage); return; }
-        this.useOverlayImage = !this.useOverlayImage; 
-        showToast(this.useOverlayImage ? USER_SETTINGS.TEXT.msgBlockImgOn : USER_SETTINGS.TEXT.msgBlockImgOff); 
-        this.draw();
-    }
-    
-    updateCanvasRect() {
-        this.canvasRect = this.canvas.getBoundingClientRect();
     }
 
     resizeAndReset() {
@@ -496,11 +786,8 @@ class Game {
         const th = h + GAME_CONFIG.safeZoneHeight;
         this.canvas.width = GAME_CONFIG.baseWidth; this.canvas.height = th;
         document.getElementById('gameContainer').style.aspectRatio = `${GAME_CONFIG.baseWidth}/${th}`;
-        
-        // サイズ変更時にRect情報を更新
-        this.updateCanvasRect();
-        setTimeout(() => this.updateCanvasRect(), 350);
-
+        this.inputHandler.updateRect();
+        setTimeout(() => this.inputHandler.updateRect(), 350);
         this.createBlurredBackground();
         if(this.state!=='MENU') { this.resetGame(); this.state='PLAYING'; document.getElementById('endScreen').classList.add('hidden'); } else { this.resetLevel(); }
         this.draw();
@@ -514,41 +801,25 @@ class Game {
         ctx.filter='none';
     }
 
-    initInput() {
-        window.addEventListener('resize', () => this.updateCanvasRect());
-        window.addEventListener('scroll', () => this.updateCanvasRect());
-        
-        const c = document.getElementById('gameContainer');
-        const move = (cx) => { 
-            if(this.isDemo)return; 
-            const r = this.canvasRect; 
-            if(!r || r.width === 0) return;
-            this.paddle.x = (cx - r.left) * (this.canvas.width / r.width) - this.paddle.width / 2;
-        };
-        
-        window.addEventListener('mousemove', e=>move(e.clientX)); c.addEventListener('touchmove', e=>{if(!this.isDemo){e.preventDefault();move(e.touches[0].clientX);}}, {passive:false});
-        
-        const click = (e) => {
-            if(e.target.closest('button')) return; 
-            SoundManager.init();
-            if(this.isDemo) { this.isDemo=false; this.state='MENU'; document.getElementById('startScreen').classList.remove('hidden'); document.querySelector('.demo-indicator')?.remove(); this.resetGame(); return; }
-            if(this.state==='MENU'||this.state==='GAMEOVER'||this.state==='WIN') this.startGame();
-            else if(this.state==='VIEW_BG') { this.state='WIN'; document.getElementById('endScreen').classList.remove('hidden'); }
-            else if(this.state==='PLAYING') {
-                const b = this.balls.find(b=>b.isAttached);
-                if(b) this.tryLaunch();
-                else if(this.pushTimer===0) this.pushTimer=10;
-            }
-        };
-        c.addEventListener('mousedown', click); c.addEventListener('touchstart', e=>{if(!e.target.closest('button')){e.preventDefault();click(e);}}, {passive:false});
-        document.addEventListener('keydown', e=>{if((e.key==='d'||e.key==='D')&&this.state==='MENU')this.startDemo(); if(this.isDemo&&this.state==='PLAYING'){const k=parseInt(e.key);if(k>0&&k<=7)this.forceDropItem(k-1);}});
-        c.addEventListener('dragover', e=>{e.preventDefault();e.stopPropagation();c.classList.add('drag-over');});
-        c.addEventListener('dragleave', e=>{e.preventDefault();e.stopPropagation();c.classList.remove('drag-over');});
-        c.addEventListener('drop', e=>{e.preventDefault();e.stopPropagation();c.classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/'))this.loadBackground(f);});
+    loadBackground(f) { const r=new FileReader(); r.onload=e=>{ this.bgImage.onload=()=>{this.useOverlayImage=false;GAME_CONFIG.blocks.overlayImage="";this.blockImage.src="";this.resizeAndReset();}; this.bgImage.src=e.target.result; showToast(USER_SETTINGS.TEXT.msgBgChanged); }; r.readAsDataURL(f); }
+    toggleBlockImage() {
+        if(!GAME_CONFIG.blocks.overlayImage){ showToast(USER_SETTINGS.TEXT.msgNoImage); return; }
+        this.useOverlayImage = !this.useOverlayImage; 
+        showToast(this.useOverlayImage ? USER_SETTINGS.TEXT.msgBlockImgOn : USER_SETTINGS.TEXT.msgBlockImgOff); 
+        this.draw();
     }
 
-    forceDropItem(i) { if(i>=0&&i<GAME_CONFIG.items.types.length) this.items.push({x:Math.random()*(this.canvas.width-40)+20, y:80, ...GAME_CONFIG.items.types[i]}); }
-    loadBackground(f) { const r=new FileReader(); r.onload=e=>{ this.bgImage.onload=()=>{this.useOverlayImage=false;GAME_CONFIG.blocks.overlayImage="";this.blockImage.src="";this.resizeAndReset();}; this.bgImage.src=e.target.result; showToast(USER_SETTINGS.TEXT.msgBgChanged); }; r.readAsDataURL(f); }
+    // --- Game Logic Control ---
+    handleClick() {
+        if(this.isDemo) { this.isDemo=false; this.state='MENU'; document.getElementById('startScreen').classList.remove('hidden'); document.querySelector('.demo-indicator')?.remove(); this.resetGame(); return; }
+        if(this.state==='MENU'||this.state==='GAMEOVER'||this.state==='WIN') this.startGame();
+        else if(this.state==='VIEW_BG') { this.state='WIN'; document.getElementById('endScreen').classList.remove('hidden'); }
+        else if(this.state==='PLAYING') {
+            const b = this.balls.find(b=>b.isAttached);
+            if(b) this.tryLaunch();
+            else if(this.pushTimer===0) this.pushTimer=10;
+        }
+    }
 
     startGame() {
         this.isDemo=false; this.resetGame(); this.state='PLAYING';
@@ -557,24 +828,157 @@ class Game {
     }
     startDemo() { SoundManager.init(); this.isDemo=true; this.resetGame(); this.state='PLAYING'; document.getElementById('startScreen').classList.add('hidden'); document.getElementById('endScreen').classList.add('hidden'); this.canvas.style.cursor='none'; const d=document.createElement('div'); d.className='demo-indicator'; d.textContent=USER_SETTINGS.TEXT.demoIndicator; document.getElementById('gameContainer').appendChild(d); }
     
-    tryLaunch() { const b=this.balls.find(b=>b.isAttached); if(b){ b.isAttached=false; const a=-Math.PI/2+(Math.random()*0.5-0.25); const s=this.getCurrentTargetSpeed(); b.dx=s*Math.cos(a); b.dy=s*Math.sin(a); SoundManager.play('launch'); document.getElementById('launchMessage').classList.remove('visible'); } }
-    
     resetGame() { this.score=0; this.lives=3; this.gameStartTime=Date.now(); this.lastTimeStr=""; this.resetLevel(); this.updateUI(); }
     resetLevel() {
         this.paddle.width=GAME_CONFIG.paddle.width; this.paddle.x=(this.canvas.width-this.paddle.width)/2;
         this.items=[]; this.particles=[]; this.speedUpEndTime=0; this.bombNextHit=false; this.pushTimer=0; this.shakeTime=0; this.winParticles=[];
         this.spawnBall(true); this.createBlocks(); this.initEgg();
     }
-    initEgg() { const my=GAME_CONFIG.blocks.offsetTop+(GAME_CONFIG.blocks.rowHeight*GAME_CONFIG.egg.wanderRows); this.egg={x:this.canvas.width/2,y:my/2,radius:GAME_CONFIG.egg.radius,dx:GAME_CONFIG.egg.speed,dy:GAME_CONFIG.egg.speed*0.5,maxY:my}; }
-    spawnBall(att=false) { this.balls=[{x:this.canvas.width/2,y:this.canvas.height-40,dx:0,dy:0,radius:GAME_CONFIG.ball.radius,active:true,isAttached:att,isSmashing:false,trail:[]}]; if(att){const m=document.getElementById('launchMessage');m.textContent=USER_SETTINGS.TEXT.launchMessage;m.classList.add('visible');} }
+    
+    spawnBall(att=false) { this.balls=[new Ball(this.canvas.width/2, this.canvas.height-40, att)]; if(att){const m=document.getElementById('launchMessage');m.textContent=USER_SETTINGS.TEXT.launchMessage;m.classList.add('visible');} }
+    tryLaunch() { const b=this.balls.find(b=>b.isAttached); if(b){ b.isAttached=false; const a=-Math.PI/2+(Math.random()*0.5-0.25); const s=this.getCurrentTargetSpeed(); b.dx=s*Math.cos(a); b.dy=s*Math.sin(a); SoundManager.play('launch'); document.getElementById('launchMessage').classList.remove('visible'); } }
+    
     createBlocks() {
         this.blocks=[]; const bw=this.canvas.width/GAME_CONFIG.blocks.cols; const h=this.canvas.height-GAME_CONFIG.safeZoneHeight;
         if(h<=0)return; const rows=Math.floor(h/GAME_CONFIG.blocks.rowHeight); const bh=h/rows;
         for(let r=0;r<rows;r++){ const c=GAME_CONFIG.colors[Math.floor((r/rows)*GAME_CONFIG.colors.length)%GAME_CONFIG.colors.length]; for(let col=0;col<GAME_CONFIG.blocks.cols;col++) this.blocks.push({x:col*bw,y:GAME_CONFIG.blocks.offsetTop+r*bh,w:bw,h:bh,color:c,active:true}); }
     }
+    initEgg() { const my=GAME_CONFIG.blocks.offsetTop+(GAME_CONFIG.blocks.rowHeight*GAME_CONFIG.egg.wanderRows); this.egg={x:this.canvas.width/2,y:my/2,radius:GAME_CONFIG.egg.radius,dx:GAME_CONFIG.egg.speed,dy:GAME_CONFIG.egg.speed*0.5,maxY:my}; }
+
+    // --- Update Loop ---
+    update() {
+        // State: Win or View BG (Confetti only)
+        if(this.state==='WIN'||this.state==='VIEW_BG') { this.updateWinParticles(); return; }
+        
+        // State: Implantation (Cutscene)
+        if(this.state==='IMPLANTATION') { this.updateImplantation(); return; }
+        
+        // State: Playing
+        if(this.state==='PLAYING') {
+            const timeStr = this.calculateTime();
+            if (timeStr !== this.lastTimeStr) { document.getElementById('timeDisplay').textContent = timeStr; this.lastTimeStr = timeStr; }
+            
+            if(this.isDemo) this.aiController.update();
+
+            this.updateTimers();
+            this.updateEgg();
+            this.updateBalls(); // Physics & Collisions
+            this.updateItems();
+            this.updateParticles();
+            this.checkWinCondition();
+        }
+    }
+
+    updateTimers() { if(this.pushTimer>0)this.pushTimer--; if(this.shakeTime>0)this.shakeTime--; }
+    updateEgg() {
+        if(!this.egg) return;
+        this.egg.x+=this.egg.dx; this.egg.y+=this.egg.dy;
+        if(this.egg.x<this.egg.radius||this.egg.x>this.canvas.width-this.egg.radius)this.egg.dx*=-1;
+        if(this.egg.y<this.egg.radius||this.egg.y>this.egg.maxY)this.egg.dy*=-1;
+    }
+
+    updateBalls() {
+        const po=(this.pushTimer>0)?Math.sin((this.pushTimer/10)*Math.PI)*12:0;
+        const pt=this.canvas.height-GAME_CONFIG.paddle.height-GAME_CONFIG.paddle.bottomOffset-po;
+        if(this.paddle.x<0)this.paddle.x=0; if(this.paddle.x+this.paddle.width>this.canvas.width)this.paddle.x=this.canvas.width-this.paddle.width;
+
+        let activeBalls = 0;
+        const ts = this.getCurrentTargetSpeed();
+
+        this.balls.forEach(b => {
+            if(!b.active) return;
+            activeBalls++;
+            
+            // Attached Logic
+            if(b.isAttached){ b.x=this.paddle.x+this.paddle.width/2; b.y=pt-b.radius-2; return; }
+
+            // Egg Collision
+            if(this.egg && (b.x-this.egg.x)**2+(b.y-this.egg.y)**2<(b.radius+this.egg.radius)**2) { this.triggerImplantation(b.x,b.y); return; }
+
+            // Movement & Trail
+            if(b.isSmashing){ b.trail.push({x:b.x,y:b.y}); if(b.trail.length>8)b.trail.shift(); } else b.trail=[];
+            
+            // Speed Regulation
+            const cs=Math.sqrt(b.dx*b.dx+b.dy*b.dy);
+            if(!b.isSmashing&&cs>0) { const s=ts/cs; b.dx*=s; b.dy*=s; }
+            else if(b.isSmashing&&cs<GAME_CONFIG.ball.fastSpeed*1.5) { const s=(GAME_CONFIG.ball.fastSpeed*1.5)/cs; b.dx*=s; b.dy*=s; }
+
+            b.x+=b.dx; b.y+=b.dy; let wallHit=false;
+            
+            // Wall Collision
+            if(b.x<b.radius){b.x=b.radius;b.dx=Math.abs(b.dx);wallHit=true;} else if(b.x>this.canvas.width-b.radius){b.x=this.canvas.width-b.radius;b.dx=-Math.abs(b.dx);wallHit=true;}
+            if(b.y<b.radius){b.y=b.radius;b.dy=Math.abs(b.dy);wallHit=true;}
+            if(wallHit){SoundManager.play('hit');if(b.isSmashing)this.normalizeBallSpeed(b);this.preventHorizontal(b);}
+
+            // Paddle Collision
+            if(b.dy>0 && b.y+b.radius>=pt && b.y-b.radius<=pt+GAME_CONFIG.paddle.height+po && b.x>=this.paddle.x && b.x<=this.paddle.x+this.paddle.width){
+                const hp=(b.x-(this.paddle.x+this.paddle.width/2))/(this.paddle.width/2);
+                const ang=hp*(Math.PI/3); let sp=Math.sqrt(b.dx*b.dx+b.dy*b.dy);
+                if(this.pushTimer>0){
+                    b.isSmashing=true; sp=GAME_CONFIG.ball.fastSpeed*GAME_CONFIG.ball.smashSpeedMultiplier; this.shakeTime=10; SoundManager.play('smash');
+                    this.score+=GAME_CONFIG.score.smashHit; this.updateUI();
+                } else {
+                    b.isSmashing=false; SoundManager.play('hit');
+                    this.score+=GAME_CONFIG.score.paddleHit; this.updateUI();
+                }
+                b.dx=sp*Math.sin(ang); b.dy=-sp*Math.cos(ang); b.y=pt-b.radius-1;
+            }
+            if(b.y>this.canvas.height) b.active=false;
+
+            // Block Collision
+            for(let i=0;i<this.blocks.length;i++){
+                const k=this.blocks[i]; if(!k.active)continue;
+                if(b.x+b.radius>k.x && b.x-b.radius<k.x+k.w && b.y+b.radius>k.y && b.y-b.radius<k.y+k.h){
+                    k.active=false; this.score+=GAME_CONFIG.score.block; this.updateUI(); SoundManager.play('block');
+                    this.createParticles(k.x+k.w/2,k.y+k.h/2,k.color);
+                    if(Math.random()<GAME_CONFIG.items.probability)this.dropItem(k.x+k.w/2,k.y+k.h/2);
+                    if(this.bombNextHit) { this.triggerExplosion(k); this.bombNextHit=false; }
+                    const px=b.x-b.dx; if(px+b.radius<=k.x||px-b.radius>=k.x+k.w)b.dx*=-1; else b.dy*=-1;
+                    if(b.isSmashing)this.normalizeBallSpeed(b); this.preventHorizontal(b); break;
+                }
+            }
+        });
+
+        if(activeBalls===0) this.handleDeath();
+    }
+
+    updateImplantation() {
+        this.shockwaveRadius+=5; let d=false;
+        this.blocks.forEach(b=>{if(b.active){const bx=b.x+b.w/2,by=b.y+b.h/2;if(Math.sqrt((bx-this.egg.x)**2+(by-this.egg.y)**2)<this.shockwaveRadius){b.active=false;d=true;this.createParticles(bx,by,b.color);}}});
+        this.updateParticles();
+        if(this.shakeTime>0)this.shakeTime--;
+        if(this.shockwaveRadius>this.shockwaveMaxRadius)this.gameWin();
+    }
+
+    updateWinParticles() {
+        this.winParticles.forEach(p=>{p.y+=p.speedY;p.x+=Math.sin(p.sway)*2;p.sway+=0.05;if(p.y>this.canvas.height){p.y=-20;p.x=Math.random()*this.canvas.width;}});
+    }
+
+    updateItems() {
+        const pt = this.canvas.height-GAME_CONFIG.paddle.height-GAME_CONFIG.paddle.bottomOffset-((this.pushTimer>0)?Math.sin((this.pushTimer/10)*Math.PI)*12:0);
+        this.items.forEach((it,i)=>{
+            it.y+=GAME_CONFIG.items.dropSpeed;
+            if(it.y>pt && it.y<pt+GAME_CONFIG.paddle.height && it.x>this.paddle.x && it.x<this.paddle.x+this.paddle.width){ this.activateItem(it); this.items.splice(i,1); }
+            else if(it.y>this.canvas.height)this.items.splice(i,1);
+        });
+    }
+
+    updateParticles() {
+        this.particles.forEach((p,i)=>{p.x+=p.dx;p.y+=p.dy;p.life-=0.02;if(p.life<=0)this.particles.splice(i,1);});
+    }
+
+    // --- Physics Helpers ---
     getCurrentTargetSpeed() { return (Date.now()<this.speedUpEndTime)?GAME_CONFIG.ball.fastSpeed:GAME_CONFIG.ball.normalSpeed; }
     normalizeBallSpeed(b) { const a=Math.atan2(b.dy,b.dx); const s=this.getCurrentTargetSpeed(); b.dx=s*Math.cos(a); b.dy=s*Math.sin(a); b.isSmashing=false; }
     preventHorizontal(b) { const s=Math.sqrt(b.dx*b.dx+b.dy*b.dy); if(Math.abs(b.dy)<s*0.2) { const sy=b.dy>=0?1:-1; let ny=s*0.2*(b.dy===0?1:sy); b.dy=ny; const sx=b.dx>=0?1:-1; b.dx=sx*Math.sqrt(Math.max(0,s*s-b.dy*b.dy)); } }
+
+    // --- Actions & Events ---
+    handleDeath() {
+        if(this.isDemo)this.spawnBall(true);
+        else { this.lives--; this.score=Math.max(0,this.score+GAME_CONFIG.score.death); this.updateUI(); SoundManager.play('die'); if(this.lives>0){this.paddle.width=GAME_CONFIG.paddle.width;this.speedUpEndTime=0;this.bombNextHit=false;this.spawnBall(true);}else this.gameOver(); }
+    }
+    
+    checkWinCondition() { if(this.blocks.length>0 && this.blocks.every(b=>!b.active))if(this.state!=='WIN')this.gameWin(); }
 
     triggerExplosion(blk) {
         SoundManager.play('smash'); this.shakeTime=30; const cx=blk.x+blk.w/2, cy=blk.y+blk.h/2;
@@ -591,165 +995,44 @@ class Game {
         });
         if(cnt>0)this.updateUI();
     }
+    
     triggerImplantation(bx,by) { this.state='IMPLANTATION'; this.shakeTime=120; this.score+=GAME_CONFIG.score.implantation; this.updateUI(); this.shockwaveRadius=0; this.shockwaveMaxRadius=Math.max(this.canvas.width,this.canvas.height)*1.5; for(let i=0;i<30;i++)this.createParticles(this.egg.x,this.egg.y,'#ff99cc'); }
-    
-    calculateTime() { 
-        const d=Date.now()-this.gameStartTime; 
-        const m=Math.floor(d/60000).toString().padStart(2,'0'); 
-        const s=Math.floor((d%60000)/1000).toString().padStart(2,'0'); 
-        return `${m}:${s}`; 
-    }
-    
-    applyTimeBonus() {
-        const s=(Date.now()-this.gameStartTime)/1000;
-        this.timeBonusMultiplier = s<=240?2.0:(s>=720?1.0:Math.round((2.0-((s-240)/480))*100)/100);
-        this.score=Math.floor(this.score*this.timeBonusMultiplier);
-    }
 
-    update() {
-        if(this.state==='WIN'||this.state==='VIEW_BG') { this.winParticles.forEach(p=>{p.y+=p.speedY;p.x+=Math.sin(p.sway)*2;p.sway+=0.05;if(p.y>this.canvas.height){p.y=-20;p.x=Math.random()*this.canvas.width;}}); return; }
-        if(this.state==='IMPLANTATION') {
-            this.shockwaveRadius+=5; let d=false;
-            this.blocks.forEach(b=>{if(b.active){const bx=b.x+b.w/2,by=b.y+b.h/2;if(Math.sqrt((bx-this.egg.x)**2+(by-this.egg.y)**2)<this.shockwaveRadius){b.active=false;d=true;this.createParticles(bx,by,b.color);}}});
-            this.particles.forEach((p,i)=>{p.x+=p.dx;p.y+=p.dy;p.life-=0.02;if(p.life<=0)this.particles.splice(i,1);});
-            if(this.shakeTime>0)this.shakeTime--;
-            if(this.shockwaveRadius>this.shockwaveMaxRadius)this.gameWin();
-            return;
-        }
-        
-        if(this.state==='PLAYING') {
-            const timeStr = this.calculateTime();
-            if (timeStr !== this.lastTimeStr) {
-                document.getElementById('timeDisplay').textContent = timeStr;
-                this.lastTimeStr = timeStr;
-            }
-        }
-        
-        if(this.state!=='PLAYING')return;
-        
-        if(this.isDemo) {
-            let tb=null,ms=-9e9;
-            this.balls.forEach(b=>{if(b.active){let s=b.y+(b.dy>0?500:0)+((this.egg&&Math.sqrt((b.x-this.egg.x)**2+(b.y-this.egg.y)**2)<200)?200:0);if(s>ms){ms=s;tb=b;}}});
-            let tx=this.paddle.x+this.paddle.width/2; 
-            
-            if(tb) {
-                tx=tb.x;
-                if(tb.dy>0 && tb.y > this.canvas.height - 250 && this.pushTimer===0 && Math.random() < 0.015) this.pushTimer=10;
-            }
-
-            let bestItem=null, minDist=Infinity;
-            this.items.forEach(i=>{if(i.y>this.canvas.height*0.3){let d=Math.abs(i.x-(tb?tb.x:tx));if(d<minDist){minDist=d;bestItem=i;}}});
-            
-            if(bestItem) {
-                const isSafe = !tb || tb.dy < 0 || tb.y < this.canvas.height - 350;
-                if(isSafe) tx = bestItem.x;
-                else if(Math.abs(bestItem.x - tx) < 120) tx = tx*0.6 + bestItem.x*0.4;
-            }
-
-            this.paddle.x+=(tx+Math.sin(Date.now()*0.005)*15-(this.paddle.x+this.paddle.width/2))*0.15;
-            if(this.balls.find(b=>b.isAttached)&&Math.random()<0.05)this.tryLaunch();
-        }
-
-        if(this.pushTimer>0)this.pushTimer--; if(this.shakeTime>0)this.shakeTime--;
-        const po=(this.pushTimer>0)?Math.sin((this.pushTimer/10)*Math.PI)*12:0;
-        const pt=this.canvas.height-GAME_CONFIG.paddle.height-GAME_CONFIG.paddle.bottomOffset-po;
-        if(this.paddle.x<0)this.paddle.x=0; if(this.paddle.x+this.paddle.width>this.canvas.width)this.paddle.x=this.canvas.width-this.paddle.width;
-
-        if(this.egg){
-            this.egg.x+=this.egg.dx; this.egg.y+=this.egg.dy;
-            if(this.egg.x<this.egg.radius||this.egg.x>this.canvas.width-this.egg.radius)this.egg.dx*=-1;
-            if(this.egg.y<this.egg.radius||this.egg.y>this.egg.maxY)this.egg.dy*=-1;
-        }
-
-        let ab=0; const ts=this.getCurrentTargetSpeed();
-        this.balls.forEach(b=>{
-            if(!b.active)return; ab++;
-            if(b.isAttached){ b.x=this.paddle.x+this.paddle.width/2; b.y=pt-b.radius-2; return; }
-            if(this.egg && (b.x-this.egg.x)**2+(b.y-this.egg.y)**2<(b.radius+this.egg.radius)**2) { this.triggerImplantation(b.x,b.y); return; }
-            if(b.isSmashing){ b.trail.push({x:b.x,y:b.y}); if(b.trail.length>8)b.trail.shift(); } else b.trail=[];
-            
-            const cs=Math.sqrt(b.dx*b.dx+b.dy*b.dy);
-            if(!b.isSmashing&&cs>0) { const s=ts/cs; b.dx*=s; b.dy*=s; }
-            else if(b.isSmashing&&cs<GAME_CONFIG.ball.fastSpeed*1.5) { const s=(GAME_CONFIG.ball.fastSpeed*1.5)/cs; b.dx*=s; b.dy*=s; }
-
-            b.x+=b.dx; b.y+=b.dy; let wh=false;
-            if(b.x<b.radius){b.x=b.radius;b.dx=Math.abs(b.dx);wh=true;} else if(b.x>this.canvas.width-b.radius){b.x=this.canvas.width-b.radius;b.dx=-Math.abs(b.dx);wh=true;}
-            if(b.y<b.radius){b.y=b.radius;b.dy=Math.abs(b.dy);wh=true;}
-            if(wh){SoundManager.play('hit');if(b.isSmashing)this.normalizeBallSpeed(b);this.preventHorizontal(b);}
-
-            if(b.dy>0 && b.y+b.radius>=pt && b.y-b.radius<=pt+GAME_CONFIG.paddle.height+po && b.x>=this.paddle.x && b.x<=this.paddle.x+this.paddle.width){
-                const hp=(b.x-(this.paddle.x+this.paddle.width/2))/(this.paddle.width/2);
-                const ang=hp*(Math.PI/3); let sp=Math.sqrt(b.dx*b.dx+b.dy*b.dy);
-                if(this.pushTimer>0){
-                    b.isSmashing=true;sp=GAME_CONFIG.ball.fastSpeed*GAME_CONFIG.ball.smashSpeedMultiplier;this.shakeTime=10;SoundManager.play('smash');
-                    this.score+=GAME_CONFIG.score.smashHit;this.updateUI();
-                }
-                else{
-                    b.isSmashing=false;SoundManager.play('hit');
-                    this.score+=GAME_CONFIG.score.paddleHit;this.updateUI();
-                }
-                b.dx=sp*Math.sin(ang); b.dy=-sp*Math.cos(ang); b.y=pt-b.radius-1;
-            }
-            if(b.y>this.canvas.height)b.active=false;
-
-            for(let i=0;i<this.blocks.length;i++){
-                const k=this.blocks[i]; if(!k.active)continue;
-                if(b.x+b.radius>k.x && b.x-b.radius<k.x+k.w && b.y+b.radius>k.y && b.y-b.radius<k.y+k.h){
-                    k.active=false; this.score+=GAME_CONFIG.score.block; this.updateUI(); SoundManager.play('block');
-                    this.createParticles(k.x+k.w/2,k.y+k.h/2,k.color);
-                    if(Math.random()<GAME_CONFIG.items.probability)this.dropItem(k.x+k.w/2,k.y+k.h/2);
-                    if(this.bombNextHit) { this.triggerExplosion(k); this.bombNextHit=false; }
-                    const px=b.x-b.dx; if(px+b.radius<=k.x||px-b.radius>=k.x+k.w)b.dx*=-1; else b.dy*=-1;
-                    if(b.isSmashing)this.normalizeBallSpeed(b); this.preventHorizontal(b); break;
-                }
-            }
-        });
-
-        if(ab===0){
-            if(this.isDemo)this.spawnBall(true);
-            else { this.lives--; this.score=Math.max(0,this.score+GAME_CONFIG.score.death); this.updateUI(); SoundManager.play('die'); if(this.lives>0){this.paddle.width=GAME_CONFIG.paddle.width;this.speedUpEndTime=0;this.bombNextHit=false;this.spawnBall(true);}else this.gameOver(); }
-        }
-
-        this.items.forEach((it,i)=>{
-            it.y+=GAME_CONFIG.items.dropSpeed;
-            if(it.y>pt && it.y<pt+GAME_CONFIG.paddle.height && it.x>this.paddle.x && it.x<this.paddle.x+this.paddle.width){ this.activateItem(it); this.items.splice(i,1); }
-            else if(it.y>this.canvas.height)this.items.splice(i,1);
-        });
-        this.particles.forEach((p,i)=>{p.x+=p.dx;p.y+=p.dy;p.life-=0.02;if(p.life<=0)this.particles.splice(i,1);});
-        if(this.blocks.length>0 && this.blocks.every(b=>!b.active))if(this.state!=='WIN')this.gameWin();
-    }
-
-    activateItem(item) {
-        SoundManager.play('item'); showToast(item.text); this.score+=item.score; this.updateUI();
-        if(item.type==='speedup')this.speedUpEndTime=Date.now()+3000;
-        else if(item.type==='multiball'){const b=this.balls.find(z=>z.active&&!z.isAttached);if(b)this.balls.push({...b,dx:-b.dx,trail:[]});}
-        else if(item.type==='expand')this.paddle.width=Math.min(this.paddle.width*2,GAME_CONFIG.paddle.width*2);
-        else if(item.type==='shrink')this.paddle.width=Math.max(this.paddle.width/2,GAME_CONFIG.paddle.width*0.5);
-        else if(item.type==='lifeup'){
-            if(this.lives < 10) {
-                this.lives++;
-                this.updateUI();
-            }
-        }
-        else if(item.type==='bomb')this.bombNextHit=true;
-        else if(item.type==='super_explosion'){
-            const b=this.balls.find(z=>z.active)||{x:this.canvas.width/2,y:this.canvas.height/2};
-            for(let i=0;i<20;i++){const a=(Math.PI*2/20)*i;const s=GAME_CONFIG.ball.normalSpeed*(0.8+Math.random()*0.4);this.balls.push({x:b.x,y:b.y,dx:Math.cos(a)*s,dy:Math.sin(a)*s,radius:GAME_CONFIG.ball.radius,active:true,isAttached:false,isSmashing:false,trail:[]});}
-        }
-    }
     dropItem(x,y) { 
         if(Math.random()<0.01)this.items.push({x,y,...GAME_CONFIG.items.types.find(t=>t.type==='super_explosion')});
         else { const l=GAME_CONFIG.items.types.filter(t=>t.type!=='super_explosion'); this.items.push({x,y,...l[Math.floor(Math.random()*l.length)]}); }
     }
+    forceDropItem(i) { if(i>=0&&i<GAME_CONFIG.items.types.length) this.items.push({x:Math.random()*(this.canvas.width-40)+20, y:80, ...GAME_CONFIG.items.types[i]}); }
+    
+    activateItem(item) {
+        SoundManager.play('item'); showToast(item.text); this.score+=item.score; this.updateUI();
+        if(item.type==='speedup')this.speedUpEndTime=Date.now()+3000;
+        else if(item.type==='multiball'){const b=this.balls.find(z=>z.active&&!z.isAttached);if(b)this.balls.push(new Ball(b.x, b.y, false)); this.balls[this.balls.length-1].dx = -b.dx; this.balls[this.balls.length-1].dy = b.dy; }
+        else if(item.type==='expand')this.paddle.width=Math.min(this.paddle.width*2,GAME_CONFIG.paddle.width*2);
+        else if(item.type==='shrink')this.paddle.width=Math.max(this.paddle.width/2,GAME_CONFIG.paddle.width*0.5);
+        else if(item.type==='lifeup'){ if(this.lives < 10) { this.lives++; this.updateUI(); } }
+        else if(item.type==='bomb')this.bombNextHit=true;
+        else if(item.type==='super_explosion'){
+            const b=this.balls.find(z=>z.active)||{x:this.canvas.width/2,y:this.canvas.height/2};
+            for(let i=0;i<20;i++){const a=(Math.PI*2/20)*i;const s=GAME_CONFIG.ball.normalSpeed*(0.8+Math.random()*0.4); 
+                const nb = new Ball(b.x, b.y, false); nb.dx=Math.cos(a)*s; nb.dy=Math.sin(a)*s; this.balls.push(nb);
+            }
+        }
+    }
+
     createParticles(x,y,c){for(let i=0;i<6;i++)this.particles.push({x,y,dx:(Math.random()-0.5)*5,dy:(Math.random()-0.5)*5,color:c,life:1.0});}
     createExplosionParticles(x,y){const c=['#f00','#f80','#ff0','#fff'];for(let i=0;i<30;i++){const a=Math.random()*6.28,s=2+Math.random()*6;this.particles.push({x,y,dx:Math.cos(a)*s,dy:Math.sin(a)*s,color:c[Math.floor(Math.random()*4)],life:1.2});}}
 
+    // --- Drawing ---
     draw() {
         this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height); this.ctx.save();
         if(this.shakeTime>0)this.ctx.translate((Math.random()-0.5)*10,(Math.random()-0.5)*10);
+        
+        // Bg
         if(this.bgImage.src&&this.bgImage.complete)this.ctx.drawImage(this.bgImage,0,0,this.canvas.width,this.canvas.height-GAME_CONFIG.safeZoneHeight);
         this.ctx.fillStyle="#000"; this.ctx.fillRect(0,this.canvas.height-GAME_CONFIG.safeZoneHeight,this.canvas.width,GAME_CONFIG.safeZoneHeight);
 
+        // Blocks
         this.blocks.forEach(b=>{
             if(!b.active)return;
             if(this.useOverlayImage&&this.blockImage.src&&this.blockImage.complete){
@@ -760,6 +1043,7 @@ class Game {
             this.ctx.globalAlpha=0.3; this.ctx.strokeStyle='#000'; this.ctx.strokeRect(b.x,b.y,b.w,b.h); this.ctx.globalAlpha=1.0;
         });
 
+        // Egg
         if(this.egg && (this.state==='PLAYING'||this.state==='IMPLANTATION')){
             this.ctx.save(); this.ctx.translate(this.egg.x,this.egg.y);
             this.ctx.shadowBlur=20; this.ctx.shadowColor=GAME_CONFIG.egg.glowColor;
@@ -768,35 +1052,23 @@ class Game {
             this.ctx.restore();
         }
 
-        const po=(this.pushTimer>0)?Math.sin((this.pushTimer/10)*Math.PI)*12:0;
-        const pt=this.canvas.height-GAME_CONFIG.paddle.height-GAME_CONFIG.paddle.bottomOffset-po;
+        // Active Game Entities
         if(this.state!=='VIEW_BG'){
-            this.ctx.fillStyle=GAME_CONFIG.paddle.color;
-            if(Date.now()<this.speedUpEndTime){this.ctx.shadowBlur=20;this.ctx.shadowColor=GAME_CONFIG.paddle.highlightColor;}else this.ctx.shadowBlur=0;
-            this.ctx.fillRect(this.paddle.x,pt,this.paddle.width,GAME_CONFIG.paddle.height); this.ctx.shadowBlur=0;
-
-            this.balls.forEach(b=>{
-                if(!b.active)return;
-                if(b.isSmashing&&b.trail.length){this.ctx.shadowColor='rgba(0,191,255,0.5)';this.ctx.shadowBlur=4;this.ctx.beginPath();b.trail.forEach((p,i)=>{if(i===0)this.ctx.moveTo(p.x,p.y);else this.ctx.lineTo(p.x,p.y);});this.ctx.strokeStyle='rgba(255,255,255,0.4)';this.ctx.lineWidth=b.radius*2;this.ctx.stroke();this.ctx.shadowBlur=0;}
-                this.ctx.save(); this.ctx.translate(b.x,b.y); this.ctx.rotate(b.isAttached?-Math.PI/2:Math.atan2(b.dy,b.dx));
-                
-                const isBomb = this.bombNextHit;
-                const bc = isBomb ? GAME_CONFIG.ball.bombColor : GAME_CONFIG.ball.color;
-                this.ctx.shadowColor = isBomb ? 'rgba(255,0,0,1)' : 'rgba(0,100,255,0.8)';
-                this.ctx.shadowBlur = isBomb ? 25 : 6;
-                
-                this.ctx.fillStyle=bc; this.ctx.beginPath(); this.ctx.arc(0,0,b.radius,0,Math.PI*2); this.ctx.fill();
-                if(!b.isAttached){
-                    this.ctx.beginPath(); this.ctx.moveTo(0,0); const tm=Date.now();
-                    for(let i=0;i<=25;i+=2)this.ctx.lineTo(-i,Math.sin(i*0.3-tm*0.07)*(i/25)*6);
-                    this.ctx.strokeStyle=bc; this.ctx.lineWidth=2; this.ctx.lineCap='round'; this.ctx.stroke();
-                }
-                this.ctx.restore();
-            });
-            this.items.forEach(i=>this.drawItemIcon(i));
+            const po=(this.pushTimer>0)?Math.sin((this.pushTimer/10)*Math.PI)*12:0;
+            const pt=this.canvas.height-GAME_CONFIG.paddle.height-GAME_CONFIG.paddle.bottomOffset-po;
+            const highlight = Date.now()<this.speedUpEndTime;
+            
+            this.paddle.draw(this.ctx, pt, GAME_CONFIG.paddle.height, highlight);
+            this.balls.forEach(b => b.draw(this.ctx, this.bombNextHit));
+            this.items.forEach(i => this.drawItemIcon(i));
         }
+        
+        // Particles
         this.particles.forEach(p=>{this.ctx.globalAlpha=p.life;this.ctx.fillStyle=p.color;this.ctx.fillRect(p.x,p.y,3,3);}); this.ctx.globalAlpha=1.0;
+        
+        // Confetti
         if(this.state==='WIN'||this.state==='VIEW_BG')this.winParticles.forEach(p=>{this.ctx.font=`${p.size}px sans-serif`;this.ctx.fillStyle=p.color;this.ctx.textAlign="center";this.ctx.fillText("❤",p.x,p.y);});
+        
         this.ctx.restore();
     }
 
@@ -815,25 +1087,31 @@ class Game {
         this.ctx.restore();
     }
     
+    // --- UI Updates ---
     updateUI() {
         const T = USER_SETTINGS.TEXT;
         document.getElementById('scoreDisplay').textContent = `${T.scoreLabel} ${this.score}`;
-        
         const hearts = "♥".repeat(this.lives);
         document.getElementById('livesDisplay').innerHTML = `<span style="color: var(--danger-color)">${hearts}</span>`;
     }
-
+    calculateTime() { 
+        const d=Date.now()-this.gameStartTime; 
+        const m=Math.floor(d/60000).toString().padStart(2,'0'); 
+        const s=Math.floor((d%60000)/1000).toString().padStart(2,'0'); 
+        return `${m}:${s}`; 
+    }
+    applyTimeBonus() {
+        const s=(Date.now()-this.gameStartTime)/1000;
+        this.timeBonusMultiplier = s<=240?2.0:(s>=720?1.0:Math.round((2.0-((s-240)/480))*100)/100);
+        this.score=Math.floor(this.score*this.timeBonusMultiplier);
+    }
+    
+    // --- Game Over / Win ---
     gameOver() {
         const T = USER_SETTINGS.TEXT;
-        this.isDemo = false;
-        this.state = 'GAMEOVER'; 
-        this.finalTimeStr = this.calculateTime();
+        this.isDemo = false; this.state = 'GAMEOVER'; this.finalTimeStr = this.calculateTime();
         document.getElementById('launchMessage').classList.remove('visible');
-        
-        const et = document.getElementById('endTitle');
-        et.textContent = T.titleGameOver; 
-        et.style.color = "var(--danger-color)";
-        
+        const et = document.getElementById('endTitle'); et.textContent = T.titleGameOver; et.style.color = "var(--danger-color)";
         document.getElementById('endScore').textContent = `${T.resultScore} ${this.score}`;
         document.getElementById('endTime').textContent = `${T.resultTime} ${this.finalTimeStr}`;
         document.getElementById('timeBonus').style.display = 'none'; 
@@ -842,59 +1120,40 @@ class Game {
         document.querySelector('.demo-indicator')?.remove();
         this.canvas.style.cursor = 'auto';
     }
-
-    startConfetti() {
-        for(let i=0; i<50; i++) {
-            this.winParticles.push({
-                x: Math.random() * this.canvas.width,
-                y: Math.random() * this.canvas.height - this.canvas.height,
-                speedY: Math.random() * 3 + 2,
-                sway: Math.random() * Math.PI * 2,
-                color: `hsl(${Math.random()*360}, 80%, 60%)`,
-                size: Math.random() * 20 + 10
-            });
-        }
-    }
-
     gameWin() {
         if (this.isDemo) { this.startDemo(); return; }
         if(this.state === 'WIN') return; 
-        
         const T = USER_SETTINGS.TEXT;
-        this.isDemo = false;
-        this.state = 'WIN'; 
-        this.finalTimeStr = this.calculateTime();
-        this.applyTimeBonus();
-        SoundManager.play('win'); 
-        this.startConfetti(); 
+        this.isDemo = false; this.state = 'WIN'; this.finalTimeStr = this.calculateTime();
+        this.applyTimeBonus(); SoundManager.play('win'); this.startConfetti(); 
         document.getElementById('launchMessage').classList.remove('visible');
-        
-        const et = document.getElementById('endTitle');
-        et.textContent = T.titleGameWin; 
-        et.style.color = "var(--success-color)";
-        
+        const et = document.getElementById('endTitle'); et.textContent = T.titleGameWin; et.style.color = "var(--success-color)";
         document.getElementById('endScore').textContent = `${T.resultScore} ${this.score}`;
         document.getElementById('endTime').textContent = `${T.resultTime} ${this.finalTimeStr}`;
-        
         const tbEl = document.getElementById('timeBonus');
         tbEl.textContent = `${T.resultTimeBonus} x${this.timeBonusMultiplier.toFixed(2)}`;
         tbEl.style.display = 'block';
-        
         document.getElementById('viewBgBtn').style.display = 'flex';
         document.getElementById('endScreen').classList.remove('hidden');
         document.querySelector('.demo-indicator')?.remove();
         this.canvas.style.cursor = 'auto';
     }
-    
+    startConfetti() {
+        for(let i=0; i<50; i++) {
+            this.winParticles.push({
+                x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height - this.canvas.height,
+                speedY: Math.random() * 3 + 2, sway: Math.random() * Math.PI * 2,
+                color: `hsl(${Math.random()*360}, 80%, 60%)`, size: Math.random() * 20 + 10
+            });
+        }
+    }
     shareResult() {
         const T = USER_SETTINGS.TEXT;
         const result = this.state === 'WIN' ? T.shareResultWin : T.shareResultLose;
         const text = `Result: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}\n`;
-        // const text = `${T.shareTitle}\nResult: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}\n${USER_SETTINGS.shareUrl}\n`;
         const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&hashtags=${T.shareHashTags}`;
         window.open(url, '_blank');
     }
-    
     viewBackground() {
         document.getElementById('endScreen').classList.add('hidden');
         this.state = 'VIEW_BG';
