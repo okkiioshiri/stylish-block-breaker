@@ -292,7 +292,7 @@
 
 <script>
 // =============================================================================
-// ▼▼▼ ユーザー設定エリア ▼▼▼
+// ▼▼▼ ユーザー設定エリア (ここを編集してください) ▼▼▼
 // =============================================================================
 
 const USER_SETTINGS = {
@@ -301,7 +301,7 @@ const USER_SETTINGS = {
     blockOverlayImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/lUMPD61O.jpg", 
     
     // 2. SNSシェア時に追加されるURL
-    shareUrl: "https://okkiioshiri.github.io/stylish-block-breaker/",
+    shareUrl: "",
 
     // 3. テキスト設定 (ここを変更するとゲーム内の文字が変わります)
     TEXT: {
@@ -324,7 +324,7 @@ const USER_SETTINGS = {
         
         // ボタンの文字
         btnPost: "Post",
-        btnViewBg: "View",
+        btnViewBg: "View Image",
         btnRetry: "Retry",
 
         // シェア機能
@@ -347,13 +347,13 @@ const USER_SETTINGS = {
         tooltipDarkBtn: "ダークモード切替",
         
         // アイテム取得時のテキスト
-        itemSpeedUp: "SPEED UP (+50pts)",
-        itemMultiBall: "MULTI BALL (+50pts)",
-        itemExpand: "WIDTH x2 (+50pts)",
-        itemShrink: "WIDTH 1/2 (-100pts)",
-        itemLifeUp: "EXTRA LIFE (+50pts)",
-        itemSuper: "SUPER SPERM EXPLOSION! (+1000pts)",
-        itemBomb: "BOMB BALL (1 HIT) (+50pts)"
+        itemSpeedUp: "SPEED UP (+1000pts)",
+        itemMultiBall: "MULTI BALL (+500pts)",
+        itemExpand: "WIDTH x2 (+500pts)",
+        itemShrink: "WIDTH 1/2 (+1000pts)",
+        itemLifeUp: "EXTRA LIFE (+500pts)",
+        itemSuper: "SUPER SPERM EXPLOSION! (+5000pts)",
+        itemBomb: "BOMB BALL (1 HIT) (+500pts)"
     }
 };
 
@@ -386,22 +386,18 @@ const GAME_CONFIG = {
         block: 100, paddleHit: 10, smashHit: 20, death: -1000, implantation: 5000
     },
     items: {
-        probability: 0.02, dropSpeed: 0.5, // アイテムのドロップ率（0.02＝2％）とスピード
+        probability: 0.03, dropSpeed: 0.5,
         types: [
-            { type: 'speedup', color: '#00e5ff', text: USER_SETTINGS.TEXT.itemSpeedUp, score: 50 },
-            { type: 'multiball', color: '#ffcc00', text: USER_SETTINGS.TEXT.itemMultiBall, score: 50 },
-            { type: 'expand', color: '#32d74b', text: USER_SETTINGS.TEXT.itemExpand, score: 50 },
-            { type: 'shrink', color: '#a93bd9', text: USER_SETTINGS.TEXT.itemShrink, score: -100 },
-            { type: 'lifeup', color: '#e36b82', text: USER_SETTINGS.TEXT.itemLifeUp, score: 50 },
-            { type: 'super_explosion', color: 'rainbow', text: USER_SETTINGS.TEXT.itemSuper, score: 1000 },
-            { type: 'bomb', color: '#cc0d02', text: USER_SETTINGS.TEXT.itemBomb, score: 50 }
+            { type: 'speedup', color: '#00e5ff', text: USER_SETTINGS.TEXT.itemSpeedUp, score: 1000 },
+            { type: 'multiball', color: '#ffcc00', text: USER_SETTINGS.TEXT.itemMultiBall, score: 500 },
+            { type: 'expand', color: '#32d74b', text: USER_SETTINGS.TEXT.itemExpand, score: 500 },
+            { type: 'shrink', color: '#a93bd9', text: USER_SETTINGS.TEXT.itemShrink, score: 1000 },
+            { type: 'lifeup', color: '#e36b82', text: USER_SETTINGS.TEXT.itemLifeUp, score: 500 },
+            { type: 'super_explosion', color: 'rainbow', text: USER_SETTINGS.TEXT.itemSuper, score: 5000 },
+            { type: 'bomb', color: '#cc0d02', text: USER_SETTINGS.TEXT.itemBomb, score: 500 }
         ]
     }
 };
-
-// =============================================================================
-// ▲▲▲ ユーザー設定エリアここまで ▲▲▲
-// =============================================================================
 
 // 設定のマージ
 GAME_CONFIG.defaultBg = USER_SETTINGS.backgroundImage;
@@ -493,7 +489,9 @@ class Game {
         document.getElementById('gameContainer').style.aspectRatio = `${GAME_CONFIG.baseWidth}/${th}`;
         
         // サイズ変更時にRect情報を更新
+        // CSS transition: height 0.3s ease があるため、アニメーション完了後にも再計算する
         this.updateCanvasRect();
+        setTimeout(() => this.updateCanvasRect(), 350);
 
         this.createBlurredBackground();
         if(this.state!=='MENU') { this.resetGame(); this.state='PLAYING'; document.getElementById('endScreen').classList.add('hidden'); } else { this.resetLevel(); }
@@ -509,6 +507,7 @@ class Game {
     }
 
     initInput() {
+        // パフォーマンス改善: リサイズとスクロール時にのみRectを再計算
         window.addEventListener('resize', () => this.updateCanvasRect());
         window.addEventListener('scroll', () => this.updateCanvasRect());
         
@@ -587,9 +586,10 @@ class Game {
     }
     triggerImplantation(bx,by) { this.state='IMPLANTATION'; this.shakeTime=120; this.score+=GAME_CONFIG.score.implantation; this.updateUI(); this.shockwaveRadius=0; this.shockwaveMaxRadius=Math.max(this.canvas.width,this.canvas.height)*1.5; for(let i=0;i<30;i++)this.createParticles(this.egg.x,this.egg.y,'#ff99cc'); }
     calculateTime() { const d=Date.now()-this.gameStartTime; return `${Math.floor(d/60000)}:${Math.floor((d%60000)/1000).toString().padStart(2,'0')}`; }
+    
     applyTimeBonus() {
         const s=(Date.now()-this.gameStartTime)/1000;
-        this.timeBonusMultiplier = s<=120?2.0:(s>=600?1.0:Math.round((2.0-((s-120)/480))*100)/100);
+        this.timeBonusMultiplier = s<=300?2.0:(s>=600?1.0:Math.round((2.0-((s-300)/300))*100)/100);
         this.score=Math.floor(this.score*this.timeBonusMultiplier);
     }
 
@@ -792,6 +792,19 @@ class Game {
         document.getElementById('endScreen').classList.remove('hidden');
         document.querySelector('.demo-indicator')?.remove();
         this.canvas.style.cursor = 'auto';
+    }
+
+    startConfetti() {
+        for(let i=0; i<50; i++) {
+            this.winParticles.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height - this.canvas.height,
+                speedY: Math.random() * 3 + 2,
+                sway: Math.random() * Math.PI * 2,
+                color: `hsl(${Math.random()*360}, 80%, 60%)`,
+                size: Math.random() * 20 + 10
+            });
+        }
     }
 
     gameWin() {
