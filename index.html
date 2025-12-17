@@ -516,7 +516,6 @@ class Game {
     }
 
     initInput() {
-        // パフォーマンス改善: リサイズとスクロール時にのみRectを再計算
         window.addEventListener('resize', () => this.updateCanvasRect());
         window.addEventListener('scroll', () => this.updateCanvasRect());
         
@@ -595,7 +594,6 @@ class Game {
     }
     triggerImplantation(bx,by) { this.state='IMPLANTATION'; this.shakeTime=120; this.score+=GAME_CONFIG.score.implantation; this.updateUI(); this.shockwaveRadius=0; this.shockwaveMaxRadius=Math.max(this.canvas.width,this.canvas.height)*1.5; for(let i=0;i<30;i++)this.createParticles(this.egg.x,this.egg.y,'#ff99cc'); }
     
-    // 修正箇所：00:00形式（分も2桁埋め）
     calculateTime() { 
         const d=Date.now()-this.gameStartTime; 
         const m=Math.floor(d/60000).toString().padStart(2,'0'); 
