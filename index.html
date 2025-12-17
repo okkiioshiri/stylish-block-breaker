@@ -872,7 +872,7 @@ class Game {
     shareResult() {
         const T = USER_SETTINGS.TEXT;
         const result = this.state === 'WIN' ? T.shareResultWin : T.shareResultLose;
-        const text = `Result: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}`;
+        const text = `Result: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}\n`;
         // const text = `${T.shareTitle}\nResult: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}\n${USER_SETTINGS.shareUrl}\n`;
         const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&hashtags=${T.shareHashTags}`;
         window.open(url, '_blank');
