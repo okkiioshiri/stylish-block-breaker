@@ -605,7 +605,7 @@ class Game {
     
     applyTimeBonus() {
         const s=(Date.now()-this.gameStartTime)/1000;
-        this.timeBonusMultiplier = s<=300?2.0:(s>=600?1.0:Math.round((2.0-((s-300)/300))*100)/100);
+        this.timeBonusMultiplier = s<=240?2.0:(s>=600?1.0:Math.round((2.0-((s-240)/360))*100)/100);
         this.score=Math.floor(this.score*this.timeBonusMultiplier);
     }
 
