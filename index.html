@@ -52,12 +52,11 @@
         touch-action: none;
     }
 
-    /* ヘッダー */
     .game-header-bar {
         width: 100%;
         max-width: 1000px;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
         padding: 0 10px 10px 10px;
         box-sizing: border-box;
@@ -67,6 +66,12 @@
         z-index: 100;
         pointer-events: none;
     }
+    
+    /* 各要素の配置指定 */
+    #scoreDisplay { justify-self: start; }
+    #timeDisplay { justify-self: center; font-variant-numeric: tabular-nums; } /* 数字の幅を揃える */
+    #livesDisplay { justify-self: end; }
+
     .status-item {
         pointer-events: auto;
         display: flex;
@@ -251,7 +256,8 @@
 
 <div class="game-header-bar">
     <div class="status-item" id="scoreDisplay">SCORE: 0</div>
-    <div class="status-item" id="livesDisplay"><span style="color: var(--danger-color)">♥</span>: 3</div>
+    <div class="status-item" id="timeDisplay">00:00</div>
+    <div class="status-item" id="livesDisplay"><span style="color: var(--danger-color)">♥♥♥</span></div>
 </div>
 
 <div class="game-container" id="gameContainer">
@@ -301,7 +307,7 @@ const USER_SETTINGS = {
     blockOverlayImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/lUMPD61O.jpg", 
     
     // 2. SNSシェア時に追加されるURL
-    shareUrl: "",
+    shareUrl: "https://okkiioshiri.github.io/stylish-block-breaker/",
 
     // 3. テキスト設定 (ここを変更するとゲーム内の文字が変わります)
     TEXT: {
@@ -312,7 +318,7 @@ const USER_SETTINGS = {
         demoIndicator: "DEMO PLAY (AUTO)",
         
         // スタート画面・終了画面タイトル
-        titleStart: "BLOCK BREAKER",
+        titleStart: "Sperm EXplosion",
         subStart: "Click to Start",
         titleGameOver: "GAME OVER",
         titleGameWin: "Congratulations!",
@@ -331,7 +337,7 @@ const USER_SETTINGS = {
         shareTitle: "",
         shareResultWin: "Cleared!",
         shareResultLose: "Game Over",
-        shareHashTags: "", // カンマ区切り
+        shareHashTags: "SpermEXplosion", // カンマ区切り
         
         // 通知・メッセージ
         msgBgChanged: "背景画像を変更しました",
@@ -386,7 +392,7 @@ const GAME_CONFIG = {
         block: 100, paddleHit: 10, smashHit: 20, death: -1000, implantation: 5000
     },
     items: {
-        probability: 0.03, dropSpeed: 0.5,
+        probability: 0.05, dropSpeed: 0.5,
         types: [
             { type: 'speedup', color: '#00e5ff', text: USER_SETTINGS.TEXT.itemSpeedUp, score: 1000 },
             { type: 'multiball', color: '#ffcc00', text: USER_SETTINGS.TEXT.itemMultiBall, score: 500 },
@@ -442,6 +448,9 @@ class Game {
         if (GAME_CONFIG.blocks.overlayImage) this.blockImage.src = GAME_CONFIG.blocks.overlayImage;
         
         this.canvasRect = null; 
+        
+        // 時間表示のキャッシュ用
+        this.lastTimeStr = "";
 
         // 初期化時にHTML上のテキストを更新
         this.applyTextSettings();
@@ -552,7 +561,7 @@ class Game {
     
     tryLaunch() { const b=this.balls.find(b=>b.isAttached); if(b){ b.isAttached=false; const a=-Math.PI/2+(Math.random()*0.5-0.25); const s=this.getCurrentTargetSpeed(); b.dx=s*Math.cos(a); b.dy=s*Math.sin(a); SoundManager.play('launch'); document.getElementById('launchMessage').classList.remove('visible'); } }
     
-    resetGame() { this.score=0; this.lives=3; this.gameStartTime=Date.now(); this.resetLevel(); this.updateUI(); }
+    resetGame() { this.score=0; this.lives=3; this.gameStartTime=Date.now(); this.lastTimeStr=""; this.resetLevel(); this.updateUI(); }
     resetLevel() {
         this.paddle.width=GAME_CONFIG.paddle.width; this.paddle.x=(this.canvas.width-this.paddle.width)/2;
         this.items=[]; this.particles=[]; this.speedUpEndTime=0; this.bombNextHit=false; this.pushTimer=0; this.shakeTime=0; this.winParticles=[];
@@ -585,7 +594,14 @@ class Game {
         if(cnt>0)this.updateUI();
     }
     triggerImplantation(bx,by) { this.state='IMPLANTATION'; this.shakeTime=120; this.score+=GAME_CONFIG.score.implantation; this.updateUI(); this.shockwaveRadius=0; this.shockwaveMaxRadius=Math.max(this.canvas.width,this.canvas.height)*1.5; for(let i=0;i<30;i++)this.createParticles(this.egg.x,this.egg.y,'#ff99cc'); }
-    calculateTime() { const d=Date.now()-this.gameStartTime; return `${Math.floor(d/60000)}:${Math.floor((d%60000)/1000).toString().padStart(2,'0')}`; }
+    
+    // 修正箇所：00:00形式（分も2桁埋め）
+    calculateTime() { 
+        const d=Date.now()-this.gameStartTime; 
+        const m=Math.floor(d/60000).toString().padStart(2,'0'); 
+        const s=Math.floor((d%60000)/1000).toString().padStart(2,'0'); 
+        return `${m}:${s}`; 
+    }
     
     applyTimeBonus() {
         const s=(Date.now()-this.gameStartTime)/1000;
@@ -603,6 +619,15 @@ class Game {
             if(this.shockwaveRadius>this.shockwaveMaxRadius)this.gameWin();
             return;
         }
+        
+        if(this.state==='PLAYING') {
+            const timeStr = this.calculateTime();
+            if (timeStr !== this.lastTimeStr) {
+                document.getElementById('timeDisplay').textContent = timeStr;
+                this.lastTimeStr = timeStr;
+            }
+        }
+        
         if(this.state!=='PLAYING')return;
         
         if(this.isDemo) {
@@ -683,7 +708,12 @@ class Game {
         else if(item.type==='multiball'){const b=this.balls.find(z=>z.active&&!z.isAttached);if(b)this.balls.push({...b,dx:-b.dx,trail:[]});}
         else if(item.type==='expand')this.paddle.width=Math.min(this.paddle.width*2,GAME_CONFIG.paddle.width*2);
         else if(item.type==='shrink')this.paddle.width=Math.max(this.paddle.width/2,GAME_CONFIG.paddle.width*0.5);
-        else if(item.type==='lifeup'){this.lives++;this.updateUI();}
+        else if(item.type==='lifeup'){
+            if(this.lives < 10) {
+                this.lives++;
+                this.updateUI();
+            }
+        }
         else if(item.type==='bomb')this.bombNextHit=true;
         else if(item.type==='super_explosion'){
             const b=this.balls.find(z=>z.active)||{x:this.canvas.width/2,y:this.canvas.height/2};
@@ -771,7 +801,9 @@ class Game {
     updateUI() {
         const T = USER_SETTINGS.TEXT;
         document.getElementById('scoreDisplay').textContent = `${T.scoreLabel} ${this.score}`;
-        document.getElementById('livesDisplay').innerHTML = `<span style="color: var(--danger-color)">${T.livesSymbol}</span>: ${this.lives}`;
+        
+        const hearts = "♥".repeat(this.lives);
+        document.getElementById('livesDisplay').innerHTML = `<span style="color: var(--danger-color)">${hearts}</span>`;
     }
 
     gameOver() {
@@ -840,7 +872,8 @@ class Game {
     shareResult() {
         const T = USER_SETTINGS.TEXT;
         const result = this.state === 'WIN' ? T.shareResultWin : T.shareResultLose;
-        const text = `${T.shareTitle}\nResult: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}\n${USER_SETTINGS.shareUrl}\n`;
+        const text = `Result: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}`;
+        // const text = `${T.shareTitle}\nResult: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}\n${USER_SETTINGS.shareUrl}\n`;
         const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&hashtags=${T.shareHashTags}`;
         window.open(url, '_blank');
     }
