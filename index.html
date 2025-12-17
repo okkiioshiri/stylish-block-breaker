@@ -498,7 +498,6 @@ class Game {
         document.getElementById('gameContainer').style.aspectRatio = `${GAME_CONFIG.baseWidth}/${th}`;
         
         // サイズ変更時にRect情報を更新
-        // CSS transition: height 0.3s ease があるため、アニメーション完了後にも再計算する
         this.updateCanvasRect();
         setTimeout(() => this.updateCanvasRect(), 350);
 
@@ -631,8 +630,22 @@ class Game {
         if(this.isDemo) {
             let tb=null,ms=-9e9;
             this.balls.forEach(b=>{if(b.active){let s=b.y+(b.dy>0?500:0)+((this.egg&&Math.sqrt((b.x-this.egg.x)**2+(b.y-this.egg.y)**2)<200)?200:0);if(s>ms){ms=s;tb=b;}}});
-            let tx=this.paddle.x+this.paddle.width/2; if(tb)tx=tb.x;
-            this.items.forEach(i=>{if(i.y>this.canvas.height/2&&Math.abs(i.x-tx)<150)tx=tx*0.7+i.x*0.3;});
+            let tx=this.paddle.x+this.paddle.width/2; 
+            
+            if(tb) {
+                tx=tb.x;
+                if(tb.dy>0 && tb.y > this.canvas.height - 250 && this.pushTimer===0 && Math.random() < 0.015) this.pushTimer=10;
+            }
+
+            let bestItem=null, minDist=Infinity;
+            this.items.forEach(i=>{if(i.y>this.canvas.height*0.3){let d=Math.abs(i.x-(tb?tb.x:tx));if(d<minDist){minDist=d;bestItem=i;}}});
+            
+            if(bestItem) {
+                const isSafe = !tb || tb.dy < 0 || tb.y < this.canvas.height - 350;
+                if(isSafe) tx = bestItem.x;
+                else if(Math.abs(bestItem.x - tx) < 120) tx = tx*0.6 + bestItem.x*0.4;
+            }
+
             this.paddle.x+=(tx+Math.sin(Date.now()*0.005)*15-(this.paddle.x+this.paddle.width/2))*0.15;
             if(this.balls.find(b=>b.isAttached)&&Math.random()<0.05)this.tryLaunch();
         }
@@ -667,8 +680,14 @@ class Game {
             if(b.dy>0 && b.y+b.radius>=pt && b.y-b.radius<=pt+GAME_CONFIG.paddle.height+po && b.x>=this.paddle.x && b.x<=this.paddle.x+this.paddle.width){
                 const hp=(b.x-(this.paddle.x+this.paddle.width/2))/(this.paddle.width/2);
                 const ang=hp*(Math.PI/3); let sp=Math.sqrt(b.dx*b.dx+b.dy*b.dy);
-                if(this.pushTimer>0){b.isSmashing=true;sp=GAME_CONFIG.ball.fastSpeed*GAME_CONFIG.ball.smashSpeedMultiplier;this.shakeTime=10;SoundManager.play('smash');}
-                else{b.isSmashing=false;SoundManager.play('hit');}
+                if(this.pushTimer>0){
+                    b.isSmashing=true;sp=GAME_CONFIG.ball.fastSpeed*GAME_CONFIG.ball.smashSpeedMultiplier;this.shakeTime=10;SoundManager.play('smash');
+                    this.score+=GAME_CONFIG.score.smashHit;this.updateUI();
+                }
+                else{
+                    b.isSmashing=false;SoundManager.play('hit');
+                    this.score+=GAME_CONFIG.score.paddleHit;this.updateUI();
+                }
                 b.dx=sp*Math.sin(ang); b.dy=-sp*Math.cos(ang); b.y=pt-b.radius-1;
             }
             if(b.y>this.canvas.height)b.active=false;
