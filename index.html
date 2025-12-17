@@ -3,38 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>stylish block breaker</title>
+<title>stylish block breaker - Life & Origin</title>
 <style>
     /* ==========================================================================
        1. デザイン設定 (CSS変数)
+       --------------------------------------------------------------------------
+       ここで色やフォントなどの見た目を一括管理
        ========================================================================== */
     :root {
-        --bg-color: #f2f2f7;
-        --card-bg: #ffffff;
-        --text-color: #1c1c1e;
-        --btn-primary-bg: #1c1c1e;
-        --btn-primary-text: #ffffff;
-        --input-bg: #e5e5ea;
-        --input-border: #d1d1d6;
-        --accent-color: #8e8e93;
-        --highlight-color: #007aff;
-        --danger-color: #ff3b30;
-        --success-color: #34c759;
+        /* 基本カラーセット */
+        --bg-color: #f2f2f7;           /* 背景色 (ライトモード) */
+        --card-bg: #ffffff;            /* カード背景色 */
+        --text-color: #1c1c1e;         /* 文字色 */
+        
+        /* ボタン・入力要素 */
+        --btn-primary-bg: #1c1c1e;     /* ボタン背景 */
+        --btn-primary-text: #ffffff;   /* ボタン文字色 */
+        
+        /* アクセント・状態カラー */
+        --highlight-color: #007aff;    /* ハイライト (青) */
+        --danger-color: #ff3b30;       /* 警告・危険 (赤) */
+        --success-color: #34c759;      /* 成功・クリア (緑) */
+        
+        /* その他 */
         --shadow-color: rgba(0, 0, 0, 0.1);
         --tooltip-bg: rgba(40, 40, 40, 0.95);
         --tooltip-text: #ffffff;
         --font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
     }
 
+    /* ダークモード時のカラー設定 */
     body.dark {
         --bg-color: #1c1c1e;
         --card-bg: #2c2c2e;
         --text-color: #f2f2f7;
-        --input-bg: #151515;
-        --input-border: #3a3a3c;
         --btn-primary-bg: #e5e5ea;
         --btn-primary-text: #1c1c1e;
-        --accent-color: #d1d1d6;
         --highlight-color: #0a84ff;
         --danger-color: #ff453a;
         --shadow-color: rgba(0, 0, 0, 0.5);
@@ -42,6 +46,7 @@
         --tooltip-text: #1c1c1e;
     }
 
+    /* === レイアウト設定 === */
     body {
         font-family: var(--font-family);
         background: var(--bg-color);
@@ -58,6 +63,27 @@
         touch-action: none;
     }
 
+    /* ヘッダーバー */
+    .game-header-bar {
+        width: 100%;
+        max-width: 1000px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 10px 10px 10px;
+        box-sizing: border-box;
+        font-size: 20px;
+        font-weight: bold;
+        color: var(--text-color);
+        z-index: 100;
+    }
+    .status-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* ゲームコンテナ */
     .game-container {
         position: relative;
         width: 100%;
@@ -74,7 +100,6 @@
         -webkit-tap-highlight-color: transparent;
         touch-action: none;
     }
-
     .game-container.drag-over {
         border-color: var(--highlight-color);
         opacity: 0.8;
@@ -94,25 +119,13 @@
         pointer-events: none;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: flex-end; 
         padding: 20px;
         box-sizing: border-box;
         z-index: 10;
     }
 
-    .header-info {
-        display: flex;
-        justify-content: space-between;
-        font-size: 24px;
-        font-weight: bold;
-        color: #fff;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-        background: rgba(0,0,0,0.3);
-        padding: 8px 20px;
-        border-radius: 20px;
-    }
-
-    /* オーバーレイ (Start/GameOver) */
+    /* オーバーレイ (スタート画面・結果画面) */
     .screen-overlay {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
@@ -124,23 +137,52 @@
         z-index: 50;
         backdrop-filter: blur(4px);
         transition: opacity 0.3s;
-        pointer-events: none; 
+        pointer-events: auto; 
         color: #fff;
     }
     .screen-overlay.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
 
-    /* テキストスタイル */
-    h1 { font-size: 56px; margin: 0 0 10px 0; letter-spacing: 0.05em; pointer-events: none; }
-    p.sub-text { font-size: 20px; opacity: 0.8; margin-bottom: 30px; pointer-events: none; }
+    h1 { font-size: 56px; margin: 0 0 10px 0; letter-spacing: 0.05em; pointer-events: none; text-align: center; }
+    p.sub-text { font-size: 20px; opacity: 0.8; margin-bottom: 10px; pointer-events: none; }
     .blink { animation: blink 1.5s infinite; }
     @keyframes blink { 50% { opacity: 0.5; } }
 
-    /* 固定ボタン */
+    /* ボタングループ */
+    .btn-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 30px;
+        pointer-events: auto;
+        position: relative;
+        z-index: 2000;
+    }
+    
+    .action-btn {
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-text);
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        pointer-events: auto;
+        position: relative;
+    }
+    .action-btn:hover { transform: scale(1.05); opacity: 0.9; }
+    .action-btn:active { transform: scale(0.95); }
+    .action-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+    /* 固定ボタン (右上のアイコン群) */
     .fixed-btn {
         position: fixed; top: 15px; 
         width: 44px; height: 44px; padding: 0;
         border-radius: 50%;
-        z-index: 100;
+        z-index: 3000; 
         pointer-events: auto;
         background: var(--card-bg);
         color: var(--text-color);
@@ -153,7 +195,6 @@
     .fixed-btn:hover { transform: translateY(-1px); opacity: 0.9; }
     .fixed-btn:active { transform: translateY(1px); }
     
-    /* ボタンの位置定義 */
     #darkModeBtn { right: 15px; }
     #muteBtn { right: 70px; }
     #imgToggleBtn { right: 125px; }
@@ -162,9 +203,7 @@
     #muteBtn.muted svg path.sound-wave { display: none; }
     #muteBtn.muted .mute-x { display: block; }
 
-    /* ==========================================================================
-       ツールチップ設定
-       ========================================================================== */
+    /* 通知・ツールチップ */
     #global-tooltip {
         position: fixed; background: var(--tooltip-bg); color: var(--tooltip-text);
         padding: 8px 12px; font-size: 12px; border-radius: 6px;
@@ -197,50 +236,70 @@
     }
     #launchMessage.visible { opacity: 1; animation: blink 1.5s infinite; }
 
+    .demo-indicator {
+        position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+        color: rgba(255,255,255,0.5); font-size: 14px; letter-spacing: 2px;
+        pointer-events: none;
+    }
+
 </style>
 </head>
 
 <body class="dark"> 
 
-<!-- ▼ 固定ボタン群 -->
+<!-- 固定機能ボタン -->
 <button id="imgToggleBtn" class="fixed-btn" aria-label="ブロック画像を変更" data-tooltip="ブロック画像を変更">
-    <svg viewBox="0 0 24 24">
-        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
-    </svg>
+    <svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
 </button>
 <button id="muteBtn" class="fixed-btn" aria-label="ミュートする" data-tooltip="ミュートする">
     <svg viewBox="0 0 24 24">
         <path d="M3 9v6h4l5 5V4L7 9H3z"/>
         <path class="sound-wave" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-        <g class="mute-x" style="display:none">
-             <path d="M16 16l4-4m0 0l-4-4m4 4l-4 4m4-4l-4-4" stroke="currentColor" stroke-width="2" />
-        </g>
+        <g class="mute-x" style="display:none"><path d="M16 16l4-4m0 0l-4-4m4 4l-4 4m4-4l-4-4" stroke="currentColor" stroke-width="2" /></g>
     </svg>
 </button>
 <button id="darkModeBtn" class="fixed-btn" aria-label="ダークモード切替" data-tooltip="ダークモード切替">
     <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c4.97 0 9-4.03 9-9a9 9 0 0 0-9-9z"/></svg>
 </button>
 
+<!-- UIヘッダー（スコア等） -->
+<div class="game-header-bar">
+    <div class="status-item" id="scoreDisplay">SCORE: 0</div>
+    <div class="status-item" id="livesDisplay"><span style="color: var(--danger-color)">♥</span>: 3</div>
+</div>
+
+<!-- ゲームメイン画面 -->
 <div class="game-container" id="gameContainer">
     <canvas id="gameCanvas"></canvas>
     
     <div class="ui-layer">
-        <div class="header-info">
-            <span id="scoreDisplay">SCORE: 0</span>
-            <span id="livesDisplay"><span style="color: var(--danger-color)">♥</span>: 3</span>
-        </div>
         <div id="launchMessage">CLICK TO LAUNCH</div>
     </div>
 
+    <!-- スタート画面 -->
     <div id="startScreen" class="screen-overlay">
         <h1>BLOCK BREAKER</h1>
         <p class="sub-text blink">Click to Start</p>
     </div>
 
+    <!-- リザルト画面 -->
     <div id="endScreen" class="screen-overlay hidden">
         <h1 id="endTitle">GAME OVER</h1>
         <p class="sub-text" id="endScore">Score: 0</p>
-        <p class="sub-text blink">Click to Retry</p>
+        <p class="sub-text" id="endTime">Time: 0:00</p> 
+        <p class="sub-text" id="timeBonus" style="font-size:16px; color:var(--highlight-color); display:none;">Time Bonus: x1.0</p>
+        
+        <div class="btn-group">
+             <button id="tweetBtn" class="action-btn">
+                <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                Post
+            </button>
+             <button id="viewBgBtn" class="action-btn" style="display:none">View Image</button>
+             <button id="retryBtn" class="action-btn">
+                <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                Retry
+             </button>
+        </div>
     </div>
 </div>
 
@@ -248,76 +307,121 @@
 // =============================================================================
 // ▼▼▼ ユーザー設定エリア ▼▼▼
 // =============================================================================
+
+// 画像設定
 const USER_SETTINGS = {
-    // 1. ゲーム全体の背景画像URL (空欄なら黒背景)
+    // 1. ゲーム全体の背景画像URL
     backgroundImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/24XnbuoP.jpg",
 
-    // 2. ブロックの表面に貼り付ける画像のURL
+    // 2. ブロックの表面に貼り付ける画像のURL (空欄ならモザイクモード)
     blockOverlayImage: "https://cdn.gamerch.com/contents/wiki/4707/entry/lUMPD61O.jpg", 
 };
-// =============================================================================
 
-/**
- * Stylish Block Breaker v39 - Refined Ball Glow
- */
-
-const CONFIG = {
-    baseWidth: 1000,
-    safeZoneHeight: 150,
-    defaultBg: USER_SETTINGS.backgroundImage, 
-
+// ゲームバランス・詳細設定
+const GAME_CONFIG = {
+    // 基本設定
+    baseWidth: 1000,         // ゲーム画面の基準幅
+    safeZoneHeight: 150,     // 画面下部の安全地帯（操作エリア）の高さ
+    
+    // パドル（自機）設定
     paddle: { 
-        width: 80,
-        height: 16,
-        color: '#fff',
-        bottomOffset: 30,
-        highlightColor: '#007aff'
+        width: 80,               // 幅
+        height: 16,              // 高さ
+        color: '#fff',           // 色
+        bottomOffset: 30,        // 下端からの距離
+        highlightColor: '#007aff'// スピードアップ時の発光色
     },
+
+    // ボール設定
     ball: { 
-        radius: 4, 
-        color: '#fff',
-        normalSpeed: 2.5,
-        fastSpeed: 9,
-        smashSpeedMultiplier: 2.0
+        radius: 4,               // 半径
+        color: '#fff',           // 通常時の色
+        bombColor: '#ff3b30',    // 爆弾モード時の色
+        normalSpeed: 2.5,        // 通常速度
+        fastSpeed: 9,            // 高速モードの速度
+        smashSpeedMultiplier: 2.0 // スマッシュ時の速度倍率
     }, 
+
+    // ブロック設定
     blocks: { 
-        cols: 32,
-        rowHeight: 14,
-        padding: 0,
-        offsetTop: 0,
-        opacity: 0.5,
-        overlayImage: USER_SETTINGS.blockOverlayImage 
+        cols: 32,                // 横方向のブロック数
+        rowHeight: 14,           // ブロック1つの高さ
+        opacity: 0.5,            // 透明度
+        offsetTop: 0,            // 上部の余白
+        padding: 0               // ブロック間の隙間
     },
+
+    // 卵（中心のターゲット）設定
+    egg: {
+        radius: 14, 
+        innerColor: 'rgba(255, 105, 180, 0.7)', 
+        membraneColor: 'rgba(255, 255, 255, 0.2)', 
+        glowColor: '#ff69b4', 
+        speed: 1.2,
+        wanderRows: 10 // 上下移動する範囲
+    },
+
+    // 爆発・破壊設定
     explosion: {
-        probability: 0.05, 
-        rangeX: 2.5,
-        rangeY: 5.5
+        rangeX: 2.5, // 爆発の横範囲
+        rangeY: 5.5  // 爆発の縦範囲
     },
+
+    // ブロックの色リスト (上段から順に使用)
     colors: [
         '#f0f0f0', '#e0e0e0', '#d0d0d0', '#c0c0c0', '#b0b0b0', 
         '#a0a0a0', '#909090', '#808080', '#707070', '#606060'
     ],
+
+    // スコア設定
+    score: {
+        block: 100,         // ブロック破壊
+        paddleHit: 10,      // パドル反射
+        smashHit: 20,       // スマッシュ
+        death: -1000,       // 死亡ペナルティ (※スコアは0未満にはなりません)
+        implantation: 5000  // クリアボーナス
+    },
+
+    // アイテム設定
     items: {
-        probability: 0.05,
-        dropSpeed: 0.5,
+        probability: 0.02, // ドロップ確率 (0.01 = 1%)
+        dropSpeed: 0.5,     // 落下速度
+        
+        // アイテムの種類リスト
         types: [
-            { type: 'speedup', color: '#00e5ff', text: 'SPEED UP (3s)' },
-            { type: 'multiball', color: '#ffcc00', text: 'MULTI BALL' },
-            { type: 'expand', color: '#32d74b', text: 'WIDTH x2' },
-            { type: 'shrink', color: '#ff3b30', text: 'WIDTH 1/2' },
-            { type: 'lifeup', color: '#ff2d55', text: 'EXTRA LIFE' } 
+            { type: 'speedup', color: '#00e5ff', text: 'SPEED UP (+50pts)', score: 50 },
+            { type: 'multiball', color: '#ffcc00', text: 'MULTI BALL (+50pts)', score: 50 },
+            { type: 'expand', color: '#32d74b', text: 'WIDTH x2 (+50pts)', score: 50 },
+            { type: 'shrink', color: '#ff3b30', text: 'WIDTH 1/2 (-100pts)', score: -100 },
+            { type: 'lifeup', color: '#ff2d55', text: 'EXTRA LIFE (+50pts)', score: 50 },
+            { type: 'super_explosion', color: 'rainbow', text: 'SUPER SPERM EXPLOSION! (+1000pts)', score: 1000 },
+            { type: 'bomb', color: '#ff453a', text: 'BOMB BALL (1 HIT) (+50pts)', score: 50 }
         ]
     },
+
+    // 画面に表示するテキスト
     text: {
         score: "SCORE:",
         launch: "CLICK TO LAUNCH",
         gameOver: "GAME OVER",
-        gameWin: "ALL CLEARED!",
+        gameWin: "Congratulations!",
         bgChanged: "背景画像を変更しました",
         bgReset: "背景をリセットしました"
     }
 };
 
+// =============================================================================
+// ▲▲▲ 設定エリアここまで (以下はプログラム本体) ▲▲▲
+// =============================================================================
+
+// 設定のマージ (USER_SETTINGSの内容を反映)
+GAME_CONFIG.defaultBg = USER_SETTINGS.backgroundImage;
+GAME_CONFIG.blocks.overlayImage = USER_SETTINGS.blockOverlayImage;
+
+/**
+ * SoundManager: 効果音を管理するオブジェクト
+ * Web Audio APIを使用して音を生成します
+ */
 const SoundManager = {
     ctx: null,
     isMuted: false,
@@ -348,6 +452,8 @@ const SoundManager = {
         const gain = this.ctx.createGain();
         osc.connect(gain);
         gain.connect(this.ctx.destination);
+        
+        // 音色の生成ロジック
         if (type === 'launch') {
             osc.type = 'triangle'; osc.frequency.setValueAtTime(440, t); osc.frequency.linearRampToValueAtTime(880, t + 0.1);
             gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.2);
@@ -372,44 +478,71 @@ const SoundManager = {
             osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, t); osc.frequency.exponentialRampToValueAtTime(50, t + 0.3);
             gain.gain.setValueAtTime(0.1, t); gain.gain.linearRampToValueAtTime(0, t + 0.3);
             osc.start(t); osc.stop(t + 0.3);
+        } else if (type === 'win') {
+            const notes = [{f: 523.25, d: 0.08}, {f: 587.33, d: 0.08}, {f: 659.25, d: 0.08}, {f: 783.99, d: 0.08}, {f: 880.00, d: 0.08}, {f: 1046.50, d: 0.8}];
+            let startTime = t;
+            notes.forEach(n => {
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = 'square'; o.connect(g); g.connect(this.ctx.destination);
+                o.frequency.setValueAtTime(n.f, startTime);
+                g.gain.setValueAtTime(0.1, startTime);
+                g.gain.exponentialRampToValueAtTime(0.01, startTime + n.d - 0.01);
+                o.start(startTime); o.stop(startTime + n.d);
+                startTime += n.d;
+            });
         }
     }
 };
 
+/**
+ * Game: ゲームのメインロジッククラス
+ */
 class Game {
     constructor() {
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
         this.blurredBgCanvas = document.createElement('canvas');
 
-        this.state = 'MENU';
+        this.state = 'MENU'; 
         this.score = 0;
         this.lives = 3;
+        this.gameStartTime = 0;
+        this.finalTimeStr = "0:00";
+        this.isDemo = false; 
+        this.timeBonusMultiplier = 1.0;
         
-        this.paddle = { x: 0, width: CONFIG.paddle.width };
+        this.paddle = { x: 0, width: GAME_CONFIG.paddle.width };
         this.balls = [];
         this.blocks = [];
         this.items = [];
         this.particles = [];
+        this.winParticles = []; 
+        this.egg = null; 
+
         this.speedUpEndTime = 0;
-        
+        this.bombNextHit = false; 
         this.pushTimer = 0;
         this.pushMax = 10;
         this.shakeTime = 0;
+        
+        this.shockwaveRadius = 0;
+        this.shockwaveMaxRadius = 0;
+
         this.initDone = false; 
 
-        this.useOverlayImage = !!CONFIG.blocks.overlayImage;
+        this.useOverlayImage = !!GAME_CONFIG.blocks.overlayImage;
 
         this.bgImage = new Image();
         this.bgImage.crossOrigin = "anonymous";
         
         this.blockImage = new Image();
         this.blockImage.crossOrigin = "anonymous";
-        if (CONFIG.blocks.overlayImage) {
-            this.blockImage.src = CONFIG.blocks.overlayImage;
+        if (GAME_CONFIG.blocks.overlayImage) {
+            this.blockImage.src = GAME_CONFIG.blocks.overlayImage;
         }
 
-        const bgUrl = CONFIG.defaultBg;
+        const bgUrl = GAME_CONFIG.defaultBg;
 
         const startInit = () => {
             if (this.initDone) return;
@@ -440,8 +573,9 @@ class Game {
         requestAnimationFrame(loop);
     }
 
+    // ブロック画像の切り替え
     toggleBlockImage() {
-        if (!CONFIG.blocks.overlayImage) {
+        if (!GAME_CONFIG.blocks.overlayImage) {
             showToast("ブロック用画像が設定されていません");
             return;
         }
@@ -454,21 +588,22 @@ class Game {
         this.draw(); 
     }
 
+    // リサイズと初期化
     resizeAndReset() {
         let imageHeight;
         if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth) {
             const aspect = this.bgImage.naturalHeight / this.bgImage.naturalWidth;
-            imageHeight = Math.floor(CONFIG.baseWidth * aspect);
+            imageHeight = Math.floor(GAME_CONFIG.baseWidth * aspect);
         } else {
             imageHeight = 600; 
         }
 
-        const totalHeight = imageHeight + CONFIG.safeZoneHeight;
-        this.canvas.width = CONFIG.baseWidth;
+        const totalHeight = imageHeight + GAME_CONFIG.safeZoneHeight;
+        this.canvas.width = GAME_CONFIG.baseWidth;
         this.canvas.height = totalHeight;
         
         const container = document.getElementById('gameContainer');
-        container.style.aspectRatio = `${CONFIG.baseWidth}/${totalHeight}`;
+        container.style.aspectRatio = `${GAME_CONFIG.baseWidth}/${totalHeight}`;
         
         this.createBlurredBackground();
 
@@ -483,21 +618,24 @@ class Game {
         this.draw();
     }
 
+    // 背景のぼかし処理
     createBlurredBackground() {
         if (!this.bgImage.src || !this.bgImage.complete || this.bgImage.naturalWidth === 0) return;
         this.blurredBgCanvas.width = this.canvas.width;
         this.blurredBgCanvas.height = this.canvas.height;
         const ctx = this.blurredBgCanvas.getContext('2d');
-        const drawHeight = this.canvas.height - CONFIG.safeZoneHeight;
+        const drawHeight = this.canvas.height - GAME_CONFIG.safeZoneHeight;
         ctx.filter = 'blur(8px)'; 
         ctx.drawImage(this.bgImage, -20, -20, this.canvas.width + 40, drawHeight + 40);
         ctx.filter = 'none';
     }
 
+    // 入力イベントの初期化
     initInput() {
         const container = document.getElementById('gameContainer');
 
         const movePaddle = (clientX) => {
+            if (this.isDemo) return; 
             const rect = this.canvas.getBoundingClientRect();
             if (rect.width === 0) return;
             const scaleX = this.canvas.width / rect.width;
@@ -507,14 +645,30 @@ class Game {
 
         window.addEventListener('mousemove', (e) => movePaddle(e.clientX));
         this.canvas.addEventListener('touchmove', (e) => {
+            if (this.isDemo) return;
             e.preventDefault();
             movePaddle(e.touches[0].clientX);
         }, { passive: false });
 
         const handleClick = (e) => {
+            if (e.target.closest('button')) return;
+
             SoundManager.init();
+
+            if (this.isDemo) {
+                this.isDemo = false;
+                this.state = 'MENU';
+                document.getElementById('startScreen').classList.remove('hidden');
+                document.querySelector('.demo-indicator')?.remove();
+                this.resetGame(); 
+                return;
+            }
+            
             if (this.state === 'MENU' || this.state === 'GAMEOVER' || this.state === 'WIN') {
                 this.startGame();
+            } else if (this.state === 'VIEW_BG') {
+                this.state = 'WIN';
+                document.getElementById('endScreen').classList.remove('hidden');
             } else if (this.state === 'PLAYING') {
                 const attachedBall = this.balls.find(b => b.isAttached);
                 if (attachedBall) {
@@ -527,11 +681,32 @@ class Game {
 
         container.addEventListener('mousedown', handleClick);
         container.addEventListener('touchstart', (e) => {
+            if (e.target.closest('button')) return;
             e.preventDefault();
             handleClick(e);
         }, { passive: false });
 
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'd' || e.key === 'D') && this.state === 'MENU') {
+                this.startDemo();
+            }
+            
+            if (this.isDemo && this.state === 'PLAYING') {
+                const key = parseInt(e.key);
+                if (key >= 1 && key <= 7) { 
+                    this.forceDropItem(key - 1);
+                }
+            }
+        });
+
         this.setupDragAndDrop(container);
+    }
+
+    forceDropItem(typeIndex) {
+        if (typeIndex < 0 || typeIndex >= GAME_CONFIG.items.types.length) return;
+        const x = Math.random() * (this.canvas.width - 40) + 20;
+        const y = 80; 
+        this.items.push({ x, y, ...GAME_CONFIG.items.types[typeIndex] });
     }
 
     setupDragAndDrop(element) {
@@ -549,23 +724,40 @@ class Game {
         reader.onload = (ev) => {
             this.bgImage.onload = () => {
                 this.useOverlayImage = false;
-                CONFIG.blocks.overlayImage = ""; 
+                GAME_CONFIG.blocks.overlayImage = ""; 
                 this.blockImage.src = "";
                 this.resizeAndReset();
             };
             this.bgImage.onerror = () => { showToast("画像の読み込みに失敗しました"); this.resizeAndReset(); };
             this.bgImage.src = ev.target.result;
-            showToast(CONFIG.text.bgChanged);
+            showToast(GAME_CONFIG.text.bgChanged);
         };
         reader.readAsDataURL(file);
     }
 
     startGame() {
+        this.isDemo = false; 
         this.resetGame();
         this.state = 'PLAYING';
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('endScreen').classList.add('hidden');
         this.canvas.style.cursor = 'none';
+        document.querySelector('.demo-indicator')?.remove();
+    }
+
+    startDemo() {
+        SoundManager.init();
+        this.isDemo = true;
+        this.resetGame();
+        this.state = 'PLAYING';
+        document.getElementById('startScreen').classList.add('hidden');
+        document.getElementById('endScreen').classList.add('hidden');
+        this.canvas.style.cursor = 'none';
+        
+        const demoLabel = document.createElement('div');
+        demoLabel.className = 'demo-indicator';
+        demoLabel.textContent = "DEMO PLAY (AUTO)";
+        document.getElementById('gameContainer').appendChild(demoLabel);
     }
 
     tryLaunch() {
@@ -585,50 +777,67 @@ class Game {
         this.score = 0;
         this.lives = 3;
         this.speedUpEndTime = 0;
+        this.bombNextHit = false; // フラグリセット
         this.pushTimer = 0;
         this.shakeTime = 0;
+        this.winParticles = [];
+        this.gameStartTime = Date.now(); 
+        this.timeBonusMultiplier = 1.0;
         this.resetLevel();
         this.updateUI();
     }
 
     resetLevel() {
-        this.paddle.width = CONFIG.paddle.width; 
+        this.paddle.width = GAME_CONFIG.paddle.width; 
         this.paddle.x = (this.canvas.width - this.paddle.width) / 2;
         this.items = [];
         this.particles = [];
         this.spawnBall(true); 
         this.createBlocks();
+        this.initEgg(); 
+    }
+
+    initEgg() {
+        const maxY = GAME_CONFIG.blocks.offsetTop + (GAME_CONFIG.blocks.rowHeight * GAME_CONFIG.egg.wanderRows);
+        this.egg = {
+            x: this.canvas.width / 2,
+            y: maxY / 2,
+            radius: GAME_CONFIG.egg.radius,
+            dx: GAME_CONFIG.egg.speed * (Math.random() > 0.5 ? 1 : -1),
+            dy: GAME_CONFIG.egg.speed * 0.5 * (Math.random() > 0.5 ? 1 : -1),
+            maxY: maxY
+        };
     }
 
     spawnBall(attached = false) {
         this.balls = [{
             x: this.canvas.width / 2, y: this.canvas.height - 40,
-            dx: 0, dy: 0, radius: CONFIG.ball.radius, active: true,
+            dx: 0, dy: 0, radius: GAME_CONFIG.ball.radius, active: true,
             isAttached: attached, isSmashing: false, trail: []
         }];
         if (attached) {
-            document.getElementById('launchMessage').textContent = CONFIG.text.launch;
+            document.getElementById('launchMessage').textContent = GAME_CONFIG.text.launch;
             document.getElementById('launchMessage').classList.add('visible');
         }
     }
 
     createBlocks() {
         this.blocks = [];
-        const bW = this.canvas.width / CONFIG.blocks.cols;
-        const imageAreaHeight = this.canvas.height - CONFIG.safeZoneHeight;
+        const bW = this.canvas.width / GAME_CONFIG.blocks.cols;
+        const imageAreaHeight = this.canvas.height - GAME_CONFIG.safeZoneHeight;
         if (imageAreaHeight <= 0) return; 
-        const rows = Math.floor(imageAreaHeight / CONFIG.blocks.rowHeight); 
+        const rows = Math.floor(imageAreaHeight / GAME_CONFIG.blocks.rowHeight); 
         const bH = imageAreaHeight / rows;
         for(let r = 0; r < rows; r++) {
-            const color = CONFIG.colors[Math.floor((r / rows) * CONFIG.colors.length) % CONFIG.colors.length];
-            for(let c = 0; c < CONFIG.blocks.cols; c++) {
-                this.blocks.push({ x: c * bW, y: CONFIG.blocks.offsetTop + r * bH, w: bW, h: bH, color: color, active: true });
+            const color = GAME_CONFIG.colors[Math.floor((r / rows) * GAME_CONFIG.colors.length) % GAME_CONFIG.colors.length];
+            for(let c = 0; c < GAME_CONFIG.blocks.cols; c++) {
+                this.blocks.push({ x: c * bW, y: GAME_CONFIG.blocks.offsetTop + r * bH, w: bW, h: bH, color: color, active: true });
             }
         }
     }
 
     getCurrentTargetSpeed() {
-        return (Date.now() < this.speedUpEndTime) ? CONFIG.ball.fastSpeed : CONFIG.ball.normalSpeed;
+        return (Date.now() < this.speedUpEndTime) ? GAME_CONFIG.ball.fastSpeed : GAME_CONFIG.ball.normalSpeed;
     }
 
     normalizeBallSpeed(ball) {
@@ -639,16 +848,34 @@ class Game {
         ball.isSmashing = false;
     }
 
+    preventHorizontal(ball) {
+        const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+        const minDyRatio = 0.2; 
+        if (Math.abs(ball.dy) < speed * minDyRatio) {
+            const signY = ball.dy >= 0 ? 1 : -1;
+            let newDy = speed * minDyRatio * (ball.dy === 0 ? 1 : signY);
+            if (ball.dy === 0) newDy = speed * minDyRatio; 
+
+            ball.dy = newDy;
+            
+            const signX = ball.dx >= 0 ? 1 : -1;
+            ball.dx = signX * Math.sqrt(Math.max(0, speed * speed - ball.dy * ball.dy));
+        }
+    }
+
     triggerExplosion(centerBlock) {
         SoundManager.play('smash'); 
-        this.shakeTime = 20; 
+        this.shakeTime = 30; // 揺れ
         
         const cx = centerBlock.x + centerBlock.w / 2;
         const cy = centerBlock.y + centerBlock.h / 2;
-        const rx = centerBlock.w * CONFIG.explosion.rangeX;
-        const ry = centerBlock.h * CONFIG.explosion.rangeY;
+        const rx = centerBlock.w * GAME_CONFIG.explosion.rangeX;
+        const ry = centerBlock.h * GAME_CONFIG.explosion.rangeY;
 
         let destroyedCount = 0;
+
+        // 爆発の視覚効果
+        this.createExplosionParticles(cx, cy);
 
         this.blocks.forEach(b => {
             if (!b.active) return;
@@ -660,32 +887,182 @@ class Game {
             if ((dx*dx)/(rx*rx) + (dy*dy)/(ry*ry) <= 1) {
                 b.active = false;
                 destroyedCount++;
-                this.score += 100;
+                this.score += GAME_CONFIG.score.block; 
                 
-                if (Math.random() < 0.3) {
+                // 誘爆したブロックからもパーティクル
+                if (Math.random() < 0.5) {
                     this.createParticles(bx, by, b.color);
                 }
-                if (Math.random() < CONFIG.items.probability * 0.5) {
+                if (Math.random() < GAME_CONFIG.items.probability * 0.5) {
                     this.dropItem(bx, by);
                 }
             }
         });
         
         if (destroyedCount > 0) {
-            this.createParticles(cx, cy, '#ff3b30'); 
             this.updateUI();
         }
     }
 
+    triggerImplantation(ballX, ballY) {
+        this.state = 'IMPLANTATION'; 
+        this.shakeTime = 120; 
+        this.score += GAME_CONFIG.score.implantation; 
+        this.updateUI();
+
+        this.shockwaveRadius = 0;
+        this.shockwaveMaxRadius = Math.max(this.canvas.width, this.canvas.height) * 1.5;
+
+        for(let i=0; i<30; i++) {
+            this.createParticles(this.egg.x, this.egg.y, '#ff99cc');
+        }
+    }
+
+    calculateTime() {
+        const diff = Date.now() - this.gameStartTime;
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    applyTimeBonus() {
+        const diffMs = Date.now() - this.gameStartTime;
+        const diffSec = diffMs / 1000;
+        
+        if (diffSec <= 120) {
+            this.timeBonusMultiplier = 2.0;
+        } else if (diffSec >= 600) {
+            this.timeBonusMultiplier = 1.0;
+        } else {
+            this.timeBonusMultiplier = 2.0 - ((diffSec - 120) / 480);
+        }
+        
+        this.timeBonusMultiplier = Math.round(this.timeBonusMultiplier * 100) / 100;
+        
+        this.score = Math.floor(this.score * this.timeBonusMultiplier);
+    }
+
+    updateCPU() {
+        let targetBall = null;
+        let maxScore = -99999;
+        
+        this.balls.forEach(b => {
+            if (!b.active) return;
+            let score = b.y;
+            if (b.dy > 0) score += 500;
+            if (this.egg) {
+                const distToEgg = Math.sqrt((b.x - this.egg.x)**2 + (b.y - this.egg.y)**2);
+                if (distToEgg < 200) score += 200;
+            }
+            if (score > maxScore) {
+                maxScore = score;
+                targetBall = b;
+            }
+        });
+
+        let targetX = this.paddle.x + this.paddle.width / 2;
+        if (targetBall) {
+            targetX = targetBall.x;
+        }
+
+        this.items.forEach(item => {
+            if (item.y > this.canvas.height / 2) {
+                 if (Math.abs(item.x - targetX) < 150) {
+                     targetX = targetX * 0.7 + item.x * 0.3; 
+                 }
+            }
+        });
+
+        const time = Date.now();
+        const noise = Math.sin(time * 0.005) * 15; 
+        targetX += noise;
+
+        const paddleCenter = this.paddle.x + this.paddle.width / 2;
+        const diff = targetX - paddleCenter;
+        
+        this.paddle.x += diff * 0.15;
+
+        if (this.paddle.x < 0) this.paddle.x = 0;
+        if (this.paddle.x + this.paddle.width > this.canvas.width) this.paddle.x = this.canvas.width - this.paddle.width;
+
+        const attached = this.balls.find(b => b.isAttached);
+        if (attached) {
+            if (Math.random() < 0.05) this.tryLaunch();
+        }
+
+        if (targetBall && targetBall.y > this.canvas.height - 120 && targetBall.dy > 0) {
+            if (targetBall.x > this.paddle.x && targetBall.x < this.paddle.x + this.paddle.width) {
+                 if (Math.random() < 0.015) {
+                     this.pushTimer = this.pushMax; 
+                 }
+            }
+        }
+    }
+
     update() {
+        if (this.state === 'WIN' || this.state === 'VIEW_BG') {
+            this.updateWinParticles();
+            return;
+        }
+
+        if (this.state === 'IMPLANTATION') {
+            this.shockwaveRadius += 5; 
+            
+            let destroyedSomething = false;
+            this.blocks.forEach(b => {
+                if (b.active) {
+                    const bx = b.x + b.w / 2;
+                    const by = b.y + b.h / 2;
+                    const dist = Math.sqrt((bx - this.egg.x)**2 + (by - this.egg.y)**2);
+                    
+                    if (dist < this.shockwaveRadius) {
+                        b.active = false;
+                        destroyedSomething = true;
+                        this.createParticles(bx, by, b.color);
+                    }
+                }
+            });
+
+            this.particles.forEach((p, i) => {
+                p.x += p.dx; p.y += p.dy; p.life -= 0.02;
+                if(p.life <= 0) this.particles.splice(i, 1);
+            });
+
+            if (this.shakeTime > 0) this.shakeTime--;
+
+            if (this.shockwaveRadius > this.shockwaveMaxRadius) {
+                this.gameWin();
+            }
+            return; 
+        }
+
         if (this.state !== 'PLAYING') return;
+
+        if (this.isDemo) {
+            this.updateCPU();
+        }
+
         if (this.pushTimer > 0) this.pushTimer--;
         if (this.shakeTime > 0) this.shakeTime--;
 
         const pushOffset = (this.pushTimer > 0) ? Math.sin((this.pushTimer / this.pushMax) * Math.PI) * 12 : 0;
-        const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset - pushOffset;
+        const paddleTop = this.canvas.height - GAME_CONFIG.paddle.height - GAME_CONFIG.paddle.bottomOffset - pushOffset;
         if (this.paddle.x < 0) this.paddle.x = 0;
         if (this.paddle.x + this.paddle.width > this.canvas.width) this.paddle.x = this.canvas.width - this.paddle.width;
+
+        if (this.egg) {
+            this.egg.x += this.egg.dx;
+            this.egg.y += this.egg.dy;
+
+            if (this.egg.x < this.egg.radius || this.egg.x > this.canvas.width - this.egg.radius) {
+                this.egg.dx *= -1;
+            }
+            if (this.egg.y < this.egg.radius || this.egg.y > this.egg.maxY) {
+                this.egg.dy *= -1;
+            }
+            this.egg.x = Math.max(this.egg.radius, Math.min(this.canvas.width - this.egg.radius, this.egg.x));
+            this.egg.y = Math.max(this.egg.radius, Math.min(this.egg.maxY, this.egg.y));
+        }
 
         let activeBalls = 0;
         const targetSpeed = this.getCurrentTargetSpeed();
@@ -698,6 +1075,16 @@ class Game {
                 ball.y = paddleTop - ball.radius - 2;
                 return;
             }
+            
+            if (this.egg) {
+                const distSq = (ball.x - this.egg.x)**2 + (ball.y - this.egg.y)**2;
+                const radSum = ball.radius + this.egg.radius;
+                if (distSq < radSum * radSum) {
+                    this.triggerImplantation(ball.x, ball.y);
+                    return; 
+                }
+            }
+
             if (ball.isSmashing) { ball.trail.push({ x: ball.x, y: ball.y }); if (ball.trail.length > 8) ball.trail.shift(); } 
             else { ball.trail = []; }
 
@@ -705,28 +1092,36 @@ class Game {
             if (!ball.isSmashing && currentSpeed > 0) {
                 const scale = targetSpeed / currentSpeed;
                 ball.dx *= scale; ball.dy *= scale;
-            } else if (ball.isSmashing && currentSpeed < CONFIG.ball.fastSpeed * 1.5) {
-                const s = (CONFIG.ball.fastSpeed * 1.5) / currentSpeed;
+            } else if (ball.isSmashing && currentSpeed < GAME_CONFIG.ball.fastSpeed * 1.5) {
+                const s = (GAME_CONFIG.ball.fastSpeed * 1.5) / currentSpeed;
                 ball.dx *= s; ball.dy *= s;
             }
 
             ball.x += ball.dx; ball.y += ball.dy;
             let wallHit = false;
-            if (ball.x < ball.radius) { ball.x = ball.radius; ball.dx = Math.abs(ball.dx); wallHit = true; }
-            else if (ball.x > this.canvas.width - ball.radius) { ball.x = this.canvas.width - ball.radius; ball.dx = -Math.abs(ball.dx); wallHit = true; }
-            if (ball.y < ball.radius) { ball.y = ball.radius; ball.dy = Math.abs(ball.dy); wallHit = true; }
+            if (ball.x < ball.radius) { 
+                ball.x = ball.radius; ball.dx = Math.abs(ball.dx); wallHit = true; 
+            }
+            else if (ball.x > this.canvas.width - ball.radius) { 
+                ball.x = this.canvas.width - ball.radius; ball.dx = -Math.abs(ball.dx); wallHit = true; 
+            }
+            if (ball.y < ball.radius) { 
+                ball.y = ball.radius; ball.dy = Math.abs(ball.dy); wallHit = true; 
+            }
             if (wallHit) {
                 SoundManager.play('hit');
                 if (ball.isSmashing) this.normalizeBallSpeed(ball);
+                this.preventHorizontal(ball); 
             }
 
-            if (ball.dy > 0 && ball.y + ball.radius >= paddleTop && ball.y - ball.radius <= paddleTop + CONFIG.paddle.height + pushOffset &&
+            if (ball.dy > 0 && ball.y + ball.radius >= paddleTop && ball.y - ball.radius <= paddleTop + GAME_CONFIG.paddle.height + pushOffset &&
                 ball.x >= this.paddle.x && ball.x <= this.paddle.x + this.paddle.width) {
                 let hitPoint = (ball.x - (this.paddle.x + this.paddle.width / 2)) / (this.paddle.width / 2);
                 const angle = hitPoint * (Math.PI / 3);
                 let speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+                
                 if (this.pushTimer > 0) {
-                    ball.isSmashing = true; speed = CONFIG.ball.fastSpeed * CONFIG.ball.smashSpeedMultiplier; 
+                    ball.isSmashing = true; speed = GAME_CONFIG.ball.fastSpeed * GAME_CONFIG.ball.smashSpeedMultiplier; 
                     this.shakeTime = 10; SoundManager.play('smash'); 
                 } else {
                     ball.isSmashing = false; SoundManager.play('hit');
@@ -744,34 +1139,49 @@ class Game {
                     ball.y + ball.radius > block.y && ball.y - ball.radius < block.y + block.h) {
                     
                     block.active = false; 
-                    this.score += 100; 
+                    this.score += GAME_CONFIG.score.block; 
                     this.updateUI(); 
                     SoundManager.play('block');
                     this.createParticles(block.x + block.w/2, block.y + block.h/2, block.color);
                     
-                    if (Math.random() < CONFIG.items.probability) this.dropItem(block.x + block.w/2, block.y + block.h/2);
+                    if (Math.random() < GAME_CONFIG.items.probability) this.dropItem(block.x + block.w/2, block.y + block.h/2);
 
-                    if (Math.random() < CONFIG.explosion.probability) {
+                    // 爆弾モード時: フラグが立っている場合のみ爆発し、フラグを折る
+                    if (this.bombNextHit) {
                         this.triggerExplosion(block);
+                        this.bombNextHit = false; // 1回で効果終了
                     }
 
                     const prevX = ball.x - ball.dx;
                     if (prevX + ball.radius <= block.x || prevX - ball.radius >= block.x + block.w) ball.dx *= -1; else ball.dy *= -1;
                     if (ball.isSmashing) this.normalizeBallSpeed(ball);
+                    this.preventHorizontal(ball); 
                     break;
                 }
             }
         });
 
+        // 死亡判定とライフ減少
         if (activeBalls === 0) {
-            this.lives--; this.updateUI(); SoundManager.play('die');
-            if (this.lives > 0) { this.paddle.width = CONFIG.paddle.width; this.speedUpEndTime = 0; this.spawnBall(true); } else { this.gameOver(); }
+            if (this.isDemo) {
+                this.spawnBall(true);
+            } else {
+                this.lives--; 
+                
+                // 死亡時のペナルティ処理 (最低0点まで)
+                this.score += GAME_CONFIG.score.death; // -1000
+                if (this.score < 0) this.score = 0;
+                
+                this.updateUI(); 
+                SoundManager.play('die');
+                if (this.lives > 0) { this.paddle.width = GAME_CONFIG.paddle.width; this.speedUpEndTime = 0; this.bombNextHit = false; this.spawnBall(true); } else { this.gameOver(); }
+            }
         }
 
         this.items.forEach((item, i) => {
-            item.y += CONFIG.items.dropSpeed;
-            const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset;
-            if (item.y > paddleTop && item.y < paddleTop + CONFIG.paddle.height &&
+            item.y += GAME_CONFIG.items.dropSpeed;
+            const paddleTop = this.canvas.height - GAME_CONFIG.paddle.height - GAME_CONFIG.paddle.bottomOffset;
+            if (item.y > paddleTop && item.y < paddleTop + GAME_CONFIG.paddle.height &&
                 item.x > this.paddle.x && item.x < this.paddle.x + this.paddle.width) {
                 this.activateItem(item); this.items.splice(i, 1);
             } else if (item.y > this.canvas.height) this.items.splice(i, 1);
@@ -782,27 +1192,98 @@ class Game {
             if(p.life <= 0) this.particles.splice(i, 1);
         });
 
-        if (this.blocks.length > 0 && this.blocks.every(b => !b.active)) this.gameWin();
+        if (this.blocks.length > 0 && this.blocks.every(b => !b.active)) {
+             if (this.state !== 'WIN') this.gameWin();
+        }
     }
 
-    dropItem(x, y) { this.items.push({ x, y, ...CONFIG.items.types[Math.floor(Math.random() * CONFIG.items.types.length)] }); }
+    updateWinParticles() {
+        this.winParticles.forEach(p => {
+            p.y += p.speedY;
+            p.x += Math.sin(p.sway) * 2;
+            p.sway += 0.05;
+            if (p.y > this.canvas.height) {
+                p.y = -20;
+                p.x = Math.random() * this.canvas.width;
+            }
+        });
+    }
+
+    dropItem(x, y) { 
+        if (Math.random() < 0.01) {
+             this.items.push({ x, y, ...GAME_CONFIG.items.types.find(t => t.type === 'super_explosion') });
+        } else {
+             const normalItems = GAME_CONFIG.items.types.filter(t => t.type !== 'super_explosion');
+             this.items.push({ x, y, ...normalItems[Math.floor(Math.random() * normalItems.length)] });
+        }
+    }
 
     activateItem(item) {
         SoundManager.play('item'); showToast(item.text);
+        this.score += item.score; 
+        this.updateUI();
+
         switch(item.type) {
             case 'speedup': this.speedUpEndTime = Date.now() + 3000; break;
             case 'multiball':
                 const ab = this.balls.find(b => b.active && !b.isAttached);
                 if (ab) this.balls.push({ x: ab.x, y: ab.y, dx: -ab.dx, dy: ab.dy, radius: ab.radius, active: true, isAttached: false, isSmashing: ab.isSmashing, trail: [] });
                 break;
-            case 'expand': this.paddle.width = Math.min(this.paddle.width * 2, CONFIG.paddle.width * 2); break;
-            case 'shrink': this.paddle.width = Math.max(this.paddle.width / 2, CONFIG.paddle.width * 0.5); break;
+            case 'expand': this.paddle.width = Math.min(this.paddle.width * 2, GAME_CONFIG.paddle.width * 2); break;
+            case 'shrink': this.paddle.width = Math.max(this.paddle.width / 2, GAME_CONFIG.paddle.width * 0.5); break;
             case 'lifeup': this.lives++; this.updateUI(); break;
+            case 'bomb': this.bombNextHit = true; break; // 次回ヒット時に爆発フラグ
+            case 'super_explosion':
+                const baseBall = this.balls.find(b => b.active) || { x: this.canvas.width/2, y: this.canvas.height/2, radius: 4 };
+                const explosionCount = 20;
+                for(let i = 0; i < explosionCount; i++) {
+                    const angleOffset = 0.1; 
+                    const angle = (Math.PI * 2 / explosionCount) * i + angleOffset;
+                    const speed = GAME_CONFIG.ball.normalSpeed * (0.8 + Math.random() * 0.4);
+                    this.balls.push({
+                        x: baseBall.x, y: baseBall.y,
+                        dx: Math.cos(angle) * speed,
+                        dy: Math.sin(angle) * speed,
+                        radius: GAME_CONFIG.ball.radius,
+                        active: true, isAttached: false, isSmashing: false, trail: []
+                    });
+                }
+                break;
         }
     }
 
     createParticles(x, y, color) {
         for(let i=0; i<6; i++) this.particles.push({ x, y, dx: (Math.random()-0.5)*5, dy: (Math.random()-0.5)*5, color: color, life: 1.0 });
+    }
+
+    // 爆発専用の派手なパーティクル生成
+    createExplosionParticles(x, y) {
+        const colors = ['#ff0000', '#ff8800', '#ffff00', '#ffffff'];
+        for(let i=0; i<30; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 6;
+            this.particles.push({
+                x, y,
+                dx: Math.cos(angle) * speed,
+                dy: Math.sin(angle) * speed,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                life: 1.2 // 長生き
+            });
+        }
+    }
+
+    startConfetti() {
+        this.winParticles = [];
+        for(let i=0; i<150; i++) {
+            this.winParticles.push({
+                x: Math.random() * this.canvas.width,
+                y: Math.random() * this.canvas.height - this.canvas.height, 
+                speedY: 2 + Math.random() * 3,
+                sway: Math.random() * Math.PI * 2,
+                color: Math.random() > 0.5 ? '#ff2d55' : '#ff99cc', 
+                size: 10 + Math.random() * 10
+            });
+        }
     }
 
     draw() {
@@ -811,14 +1292,14 @@ class Game {
         if (this.shakeTime > 0) { const dx = (Math.random() - 0.5) * 10; const dy = (Math.random() - 0.5) * 10; this.ctx.translate(dx, dy); }
 
         if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth) {
-            const drawHeight = this.canvas.height - CONFIG.safeZoneHeight;
+            const drawHeight = this.canvas.height - GAME_CONFIG.safeZoneHeight;
             this.ctx.drawImage(this.bgImage, 0, 0, this.canvas.width, drawHeight);
         }
 
         this.ctx.fillStyle = "#000000";
-        this.ctx.fillRect(0, this.canvas.height - CONFIG.safeZoneHeight, this.canvas.width, CONFIG.safeZoneHeight);
+        this.ctx.fillRect(0, this.canvas.height - GAME_CONFIG.safeZoneHeight, this.canvas.width, GAME_CONFIG.safeZoneHeight);
 
-        const drawHeight = this.canvas.height - CONFIG.safeZoneHeight;
+        const drawHeight = this.canvas.height - GAME_CONFIG.safeZoneHeight;
 
         this.blocks.forEach(b => {
             if (b.active) {
@@ -829,130 +1310,261 @@ class Game {
                 } else if (this.bgImage.src && this.bgImage.complete && this.bgImage.naturalWidth > 0) {
                      this.ctx.drawImage(this.blurredBgCanvas, b.x, b.y, b.w, b.h, b.x, b.y, b.w, b.h);
                 }
-                this.ctx.globalAlpha = CONFIG.blocks.opacity; this.ctx.fillStyle = b.color; this.ctx.fillRect(b.x, b.y, b.w, b.h);
+                this.ctx.globalAlpha = GAME_CONFIG.blocks.opacity; this.ctx.fillStyle = b.color; this.ctx.fillRect(b.x, b.y, b.w, b.h);
                 this.ctx.globalAlpha = 0.3; this.ctx.strokeStyle = '#000000'; this.ctx.lineWidth = 1; this.ctx.strokeRect(b.x, b.y, b.w, b.h);
                 this.ctx.globalAlpha = 1.0;
             }
         });
+
+        if (this.egg && (this.state === 'PLAYING' || this.state === 'IMPLANTATION')) {
+            this.ctx.save();
+            this.ctx.translate(this.egg.x, this.egg.y);
+            
+            const pulse = 1.0 + 0.08 * Math.sin(Date.now() / 250); 
+
+            this.ctx.shadowBlur = 20;
+            this.ctx.shadowColor = GAME_CONFIG.egg.glowColor;
+
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, this.egg.radius * pulse, 0, Math.PI * 2);
+            this.ctx.fillStyle = GAME_CONFIG.egg.membraneColor;
+            this.ctx.fill();
+            
+            this.ctx.shadowBlur = 0; 
+
+            this.ctx.beginPath();
+            this.ctx.arc(0, 0, this.egg.radius * 0.6 * pulse, 0, Math.PI * 2);
+            this.ctx.fillStyle = GAME_CONFIG.egg.innerColor; 
+            this.ctx.fill();
+
+            this.ctx.restore();
+        }
         
         const pushOffset = (this.pushTimer > 0) ? Math.sin((this.pushTimer / this.pushMax) * Math.PI) * 12 : 0;
-        const paddleTop = this.canvas.height - CONFIG.paddle.height - CONFIG.paddle.bottomOffset - pushOffset;
+        const paddleTop = this.canvas.height - GAME_CONFIG.paddle.height - GAME_CONFIG.paddle.bottomOffset - pushOffset;
         
-        this.ctx.fillStyle = CONFIG.paddle.color;
-        if (Date.now() < this.speedUpEndTime) { this.ctx.shadowBlur = 20; this.ctx.shadowColor = CONFIG.paddle.highlightColor; } 
-        else { this.ctx.shadowBlur = 0; }
-        this.ctx.fillRect(this.paddle.x, paddleTop, this.paddle.width, CONFIG.paddle.height);
-        this.ctx.shadowBlur = 0; 
+        if (this.state !== 'VIEW_BG') {
+            this.ctx.fillStyle = GAME_CONFIG.paddle.color;
+            if (Date.now() < this.speedUpEndTime) { this.ctx.shadowBlur = 20; this.ctx.shadowColor = GAME_CONFIG.paddle.highlightColor; } 
+            else { this.ctx.shadowBlur = 0; }
+            this.ctx.fillRect(this.paddle.x, paddleTop, this.paddle.width, GAME_CONFIG.paddle.height);
+            this.ctx.shadowBlur = 0; 
 
-        // ▼▼▼ ボール描画 ▼▼▼
-        this.balls.forEach(b => {
-            if(b.active) {
-                // スマッシュ時の残像
-                if (b.isSmashing && b.trail.length > 0) {
-                    this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                    this.ctx.shadowBlur = 4;
-                    this.ctx.beginPath();
-                    b.trail.forEach((pos, index) => { if (index === 0) this.ctx.moveTo(pos.x, pos.y); else this.ctx.lineTo(pos.x, pos.y); });
-                    this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; this.ctx.lineWidth = b.radius * 2; this.ctx.lineCap = 'round'; this.ctx.stroke();
-                    this.ctx.shadowBlur = 0; 
-                }
-
-                this.ctx.save();
-                this.ctx.translate(b.x, b.y);
-                let angle;
-                if (b.isAttached) angle = -Math.PI / 2;
-                else angle = Math.atan2(b.dy, b.dx);
-                this.ctx.rotate(angle);
-
-                // ▼ 黒い発光設定
-                this.ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                this.ctx.shadowBlur = 4;
-                this.ctx.shadowOffsetX = 0;
-                this.ctx.shadowOffsetY = 0;
-
-                // 頭部（円）
-                this.ctx.fillStyle = CONFIG.ball.color;
-                this.ctx.beginPath();
-                this.ctx.arc(0, 0, b.radius, 0, Math.PI*2);
-                this.ctx.fill();
-
-                // 尾（にょろにょろ）
-                if (!b.isAttached) {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(0, 0); 
-                    
-                    const tailLength = 25; 
-                    const waveFreq = 0.3;
-                    const waveSpeed = 0.07;
-                    const time = Date.now();
-
-                    for (let i = 0; i <= tailLength; i += 2) {
-                        const amp = (i / tailLength) * 6; 
-                        const tx = -i; 
-                        const ty = Math.sin(i * waveFreq - time * waveSpeed) * amp;
-                        this.ctx.lineTo(tx, ty);
+            this.balls.forEach(b => {
+                if(b.active) {
+                    if (b.isSmashing && b.trail.length > 0) {
+                        this.ctx.shadowColor = 'rgba(0, 191, 255, 0.5)'; 
+                        this.ctx.shadowBlur = 4;
+                        this.ctx.beginPath();
+                        b.trail.forEach((pos, index) => { if (index === 0) this.ctx.moveTo(pos.x, pos.y); else this.ctx.lineTo(pos.x, pos.y); });
+                        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; this.ctx.lineWidth = b.radius * 2; this.ctx.lineCap = 'round'; this.ctx.stroke();
+                        this.ctx.shadowBlur = 0; 
                     }
-                    this.ctx.strokeStyle = CONFIG.ball.color;
-                    this.ctx.lineWidth = 2; 
-                    this.ctx.lineCap = 'round'; 
-                    this.ctx.lineJoin = 'round';
-                    this.ctx.stroke();
+
+                    this.ctx.save();
+                    this.ctx.translate(b.x, b.y);
+                    let angle;
+                    if (b.isAttached) angle = -Math.PI / 2;
+                    else angle = Math.atan2(b.dy, b.dx);
+                    this.ctx.rotate(angle);
+
+                    // 爆弾モード(次回ヒット時)は赤く発光・色変更
+                    const isBomb = this.bombNextHit;
+                    const ballColor = isBomb ? GAME_CONFIG.ball.bombColor : GAME_CONFIG.ball.color;
+
+                    if (isBomb) {
+                        this.ctx.shadowColor = 'rgba(255, 0, 0, 1.0)'; // 純粋な赤の光
+                        this.ctx.shadowBlur = 25; // 強烈なグロー
+                    } else {
+                        this.ctx.shadowColor = 'rgba(0, 100, 255, 0.8)'; // 通常時の青い光
+                        this.ctx.shadowBlur = 6;
+                    }
+                    
+                    this.ctx.shadowOffsetX = 0;
+                    this.ctx.shadowOffsetY = 0;
+
+                    this.ctx.fillStyle = ballColor;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, b.radius, 0, Math.PI*2);
+                    this.ctx.fill();
+
+                    if (!b.isAttached) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(0, 0); 
+                        
+                        const tailLength = 25; 
+                        const waveFreq = 0.3;
+                        const waveSpeed = 0.07;
+                        const time = Date.now();
+
+                        for (let i = 0; i <= tailLength; i += 2) {
+                            const amp = (i / tailLength) * 6; 
+                            const tx = -i; 
+                            const ty = Math.sin(i * waveFreq - time * waveSpeed) * amp;
+                            this.ctx.lineTo(tx, ty);
+                        }
+                        this.ctx.strokeStyle = ballColor; // 尾の色も同期
+                        this.ctx.lineWidth = 2; 
+                        this.ctx.lineCap = 'round'; 
+                        this.ctx.lineJoin = 'round';
+                        this.ctx.stroke();
+                    }
+
+                    this.ctx.restore();
                 }
+            });
 
-                this.ctx.restore();
-            }
-        });
-        // ▲▲▲ ボール描画終了 ▲▲▲
-
-        this.items.forEach(item => this.drawItemIcon(item.x, item.y, item.type, item.color));
+            this.items.forEach(item => this.drawItemIcon(item.x, item.y, item.type, item.color));
+        }
+        
         this.particles.forEach(p => { this.ctx.globalAlpha = p.life; this.ctx.fillStyle = p.color; this.ctx.fillRect(p.x, p.y, 3, 3); });
         this.ctx.globalAlpha = 1.0;
+
+        if (this.state === 'WIN' || this.state === 'VIEW_BG') {
+            this.winParticles.forEach(p => {
+                this.ctx.font = `${p.size}px sans-serif`;
+                this.ctx.fillStyle = p.color;
+                this.ctx.textAlign = "center";
+                this.ctx.fillText("❤", p.x, p.y);
+            });
+        }
+
         this.ctx.restore();
     }
 
     drawItemIcon(x, y, type, color) {
         const r = 14; 
         this.ctx.save();
-        this.ctx.shadowBlur = 10; this.ctx.shadowColor = color; this.ctx.strokeStyle = color; this.ctx.lineWidth = 2;
-        this.ctx.beginPath(); this.ctx.arc(x, y, r, 0, Math.PI * 2); this.ctx.stroke();
-        this.ctx.shadowBlur = 0; this.ctx.fillStyle = "#ffffff"; this.ctx.strokeStyle = "#ffffff";
-        this.ctx.lineWidth = 2; this.ctx.lineCap = 'round'; this.ctx.lineJoin = 'round';
+        
+        let drawColor = color;
+        if (type === 'super_explosion') {
+             const hue = (Date.now() / 10) % 360;
+             drawColor = `hsl(${hue}, 100%, 50%)`;
+        }
+
+        this.ctx.shadowBlur = 10; 
+        this.ctx.shadowColor = drawColor; 
+        this.ctx.strokeStyle = drawColor; 
+        this.ctx.lineWidth = 2;
+        
+        this.ctx.beginPath(); 
+        this.ctx.arc(x, y, r, 0, Math.PI * 2); 
+        this.ctx.stroke();
+        
+        this.ctx.shadowBlur = 0; 
+        this.ctx.fillStyle = drawColor; 
+        this.ctx.strokeStyle = drawColor; 
+        this.ctx.lineWidth = 2; 
+        this.ctx.lineCap = 'round'; 
+        this.ctx.lineJoin = 'round';
+        
         this.ctx.beginPath();
         if (type === 'speedup') { this.ctx.moveTo(x + 2, y - 7); this.ctx.lineTo(x - 3, y); this.ctx.lineTo(x + 2, y); this.ctx.lineTo(x - 2, y + 7); this.ctx.stroke(); } 
         else if (type === 'multiball') { this.ctx.arc(x - 5, y + 3, 2.5, 0, Math.PI*2); this.ctx.closePath(); this.ctx.arc(x + 5, y + 3, 2.5, 0, Math.PI*2); this.ctx.closePath(); this.ctx.arc(x, y - 5, 2.5, 0, Math.PI*2); this.ctx.fill(); } 
         else if (type === 'expand') { this.ctx.moveTo(x - 6, y); this.ctx.lineTo(x + 6, y); this.ctx.moveTo(x - 3, y - 3); this.ctx.lineTo(x - 6, y); this.ctx.lineTo(x - 3, y + 3); this.ctx.moveTo(x + 3, y - 3); this.ctx.lineTo(x + 6, y); this.ctx.lineTo(x + 3, y + 3); this.ctx.stroke(); } 
         else if (type === 'shrink') { this.ctx.moveTo(x - 7, y - 3); this.ctx.lineTo(x - 2, y); this.ctx.lineTo(x - 7, y + 3); this.ctx.moveTo(x + 7, y - 3); this.ctx.lineTo(x + 2, y); this.ctx.lineTo(x + 7, y + 3); this.ctx.stroke(); } 
-        else if (type === 'lifeup') { this.ctx.font = "bold 20px sans-serif"; this.ctx.textAlign = "center"; this.ctx.textBaseline = "middle"; this.ctx.fillStyle = "#ffffff"; this.ctx.fillText("♥", x, y + 2); }
+        else if (type === 'lifeup') { this.ctx.font = "bold 20px sans-serif"; this.ctx.textAlign = "center"; this.ctx.textBaseline = "middle"; this.ctx.fillStyle = drawColor; this.ctx.fillText("♥", x, y + 2); }
+        else if (type === 'super_explosion') { 
+            this.ctx.moveTo(x, y-6); this.ctx.lineTo(x, y+6);
+            this.ctx.moveTo(x-6, y); this.ctx.lineTo(x+6, y);
+            this.ctx.moveTo(x-4, y-4); this.ctx.lineTo(x+4, y+4);
+            this.ctx.moveTo(x+4, y-4); this.ctx.lineTo(x-4, y+4);
+            this.ctx.stroke();
+        }
+        else if (type === 'bomb') {
+            this.ctx.fillStyle = drawColor;
+            this.ctx.beginPath(); this.ctx.arc(x, y + 2, 6, 0, Math.PI * 2); this.ctx.fill();
+            this.ctx.strokeStyle = drawColor; this.ctx.lineWidth = 2;
+            this.ctx.beginPath(); this.ctx.moveTo(x + 2, y - 2); this.ctx.quadraticCurveTo(x + 6, y - 6, x + 8, y - 4); this.ctx.stroke();
+            this.ctx.fillStyle = '#ffcc00';
+            this.ctx.beginPath(); this.ctx.arc(x + 8, y - 4, 1.5, 0, Math.PI * 2); this.ctx.fill();
+        }
         this.ctx.restore();
     }
 
     updateUI() {
-        document.getElementById('scoreDisplay').textContent = `${CONFIG.text.score} ${this.score}`;
+        document.getElementById('scoreDisplay').textContent = `${GAME_CONFIG.text.score} ${this.score}`;
         document.getElementById('livesDisplay').innerHTML = `<span style="color: var(--danger-color)">♥</span>: ${this.lives}`;
     }
 
     gameOver() {
-        this.state = 'GAMEOVER'; document.getElementById('launchMessage').classList.remove('visible');
-        document.getElementById('endTitle').textContent = CONFIG.text.gameOver; document.getElementById('endTitle').style.color = "var(--danger-color)";
-        document.getElementById('endScore').textContent = 'Score: ' + this.score; document.getElementById('endScreen').classList.remove('hidden');
+        this.isDemo = false;
+        this.state = 'GAMEOVER'; 
+        this.finalTimeStr = this.calculateTime();
+        document.getElementById('launchMessage').classList.remove('visible');
+        document.getElementById('endTitle').textContent = GAME_CONFIG.text.gameOver; 
+        document.getElementById('endTitle').style.color = "var(--danger-color)";
+        document.getElementById('endScore').textContent = 'Score: ' + this.score;
+        document.getElementById('endTime').textContent = 'Time: ' + this.finalTimeStr;
+        document.getElementById('timeBonus').style.display = 'none'; 
+        
+        document.getElementById('viewBgBtn').style.display = 'none';
+        
+        document.getElementById('endScreen').classList.remove('hidden');
+        document.querySelector('.demo-indicator')?.remove();
         this.canvas.style.cursor = 'auto';
     }
 
     gameWin() {
-        this.state = 'WIN'; document.getElementById('launchMessage').classList.remove('visible');
-        document.getElementById('endTitle').textContent = CONFIG.text.gameWin; document.getElementById('endTitle').style.color = "var(--success-color)";
-        document.getElementById('endScore').textContent = 'Score: ' + this.score; document.getElementById('endScreen').classList.remove('hidden');
+        if (this.isDemo) {
+            this.startDemo();
+            return;
+        }
+
+        if(this.state === 'WIN') return; 
+        this.isDemo = false;
+        this.state = 'WIN'; 
+        this.finalTimeStr = this.calculateTime();
+        
+        this.applyTimeBonus();
+
+        SoundManager.play('win'); 
+        this.startConfetti(); 
+        
+        document.getElementById('launchMessage').classList.remove('visible');
+        document.getElementById('endTitle').textContent = GAME_CONFIG.text.gameWin; 
+        document.getElementById('endTitle').style.color = "var(--success-color)";
+        document.getElementById('endScore').textContent = 'Score: ' + this.score; 
+        document.getElementById('endTime').textContent = 'Time: ' + this.finalTimeStr;
+        
+        const tbEl = document.getElementById('timeBonus');
+        tbEl.textContent = `Time Bonus: x${this.timeBonusMultiplier.toFixed(2)}`;
+        tbEl.style.display = 'block';
+        
+        document.getElementById('viewBgBtn').style.display = 'flex';
+
+        document.getElementById('endScreen').classList.remove('hidden');
+        document.querySelector('.demo-indicator')?.remove();
         this.canvas.style.cursor = 'auto';
+    }
+    
+    shareResult() {
+        const result = this.state === 'WIN' ? "Cleared!" : "Game Over";
+        const text = `Result: ${result}\nScore: ${this.score}\nTime: ${this.finalTimeStr}\n\n`;
+        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&hashtags=Sperm_Block_Breaker`;
+        window.open(url, 'https://okkiioshiri.github.io/stylish-block-breaker/');
+    }
+    
+    viewBackground() {
+        document.getElementById('endScreen').classList.add('hidden');
+        this.state = 'VIEW_BG';
+        showToast("画面クリックで戻ります");
     }
 }
 
 const game = new Game();
 
-// イベントリスナー
+// イベントリスナー設定
 document.getElementById('muteBtn').addEventListener('click', (e) => { e.stopPropagation(); SoundManager.toggleMute(); });
 document.getElementById('darkModeBtn').addEventListener('click', (e) => { e.stopPropagation(); document.body.classList.toggle('dark'); });
 document.getElementById('imgToggleBtn').addEventListener('click', (e) => { e.stopPropagation(); game.toggleBlockImage(); });
 
+// リザルト画面のボタンイベント
+document.getElementById('tweetBtn').addEventListener('click', (e) => { e.stopPropagation(); game.shareResult(); });
+document.getElementById('retryBtn').addEventListener('click', (e) => { e.stopPropagation(); game.startGame(); });
+document.getElementById('viewBgBtn').addEventListener('click', (e) => { e.stopPropagation(); game.viewBackground(); });
+
+// トースト通知機能
 function showToast(message) {
     const existing = document.querySelector('.toast-notification');
     if (existing) existing.remove();
@@ -961,6 +1573,7 @@ function showToast(message) {
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 2000);
 }
 
+// ツールチップ機能
 function initTooltip() {
     const existing = document.getElementById('global-tooltip');
     if (existing) existing.remove();
