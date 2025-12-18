@@ -924,7 +924,7 @@ const STAGE2_CONFIG = {
         }
         update(px, py, spawnBullet, spawnMinion) {
             this.time++; const hpRatio = this.hp / this.maxHp;
-            if (this.state === 'SPAWN') { this.r += (this.targetR - this.r) * 0.05; if (Math.abs(this.r - this.targetR) < 1) { this.state = 'FIGHT'; document.getElementById('bossHpDisplay').style.display = 'block'; } }
+            if (this.state === 'SPAWN') { this.r += (this.targetR - this.r) * 0.01; if (Math.abs(this.r - this.targetR) < 1) { this.state = 'FIGHT'; document.getElementById('bossHpDisplay').style.display = 'block'; } }
             if (this.state === 'FIGHT') {
                 this.x += Math.sin(this.time * 0.02) * 1.5; this.y = 150 + Math.sin(this.time * 0.03) * 5;
                 if (hpRatio < 0.5 && !this.minionsSpawned) { this.minionsSpawned = true; for(let i=0; i<4; i++) spawnMinion(this.x, this.y, (Math.PI*2/4)*i); SoundManager.play('heavy_explosion'); }
