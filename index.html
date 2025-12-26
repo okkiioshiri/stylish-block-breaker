@@ -263,7 +263,7 @@
 </div>
 
 <div class="instructions-area" id="tutorialText">
-    MOVE: WASD / Mouse &nbsp; SHOOT: Click / Space &nbsp; BOMB: Right Click / Shift
+    MOVE: Mouse &nbsp; SMASH: Click
 </div>
 
 <script>
@@ -635,7 +635,7 @@ window.addEventListener('DOMContentLoaded', () => {
         }
         startGame() { this.isDemo=false; this.resetGame(); this.state='PLAYING'; document.getElementById('startScreen').classList.add('hidden'); document.getElementById('endScreen').classList.add('hidden'); document.getElementById('bossBtn').style.display='none'; document.getElementById('gameContainer').style.cursor='none'; document.querySelector('.demo-indicator')?.remove(); this.showTutorial(); }
         startDemo() { SoundManager.init(); this.isDemo=true; this.resetGame(); this.state='PLAYING'; document.getElementById('startScreen').classList.add('hidden'); document.getElementById('endScreen').classList.add('hidden'); document.getElementById('gameContainer').style.cursor='none'; const d=document.createElement('div'); d.className='demo-indicator'; d.textContent=USER_SETTINGS.TEXT.demoIndicator; document.getElementById('gameContainer').appendChild(d); }
-        showTutorial() { const t=document.getElementById('tutorialText'); t.classList.add('visible'); setTimeout(()=>t.classList.remove('visible'), 5000); }
+        showTutorial() { const t=document.getElementById('tutorialText'); t.classList.add('visible'); }
         resetGame() { this.score=0; this.lives=3; this.gameStartTime=Date.now(); this.lastTimeStr=""; this.resetLevel(); this.updateUI(); }
         resetLevel() { this.paddle.width=GAME_CONFIG.paddle.width; this.paddle.x=(this.canvas.width-this.paddle.width)/2; this.items=[]; this.particleSystem.clear(); this.speedUpEndTime=0; this.bombNextHit=false; this.pushTimer=0; this.shakeTime=0; this.winParticles=[]; this.spawnBall(true); this.createBlocks(); this.initEgg(); }
         spawnBall(att=false) { this.balls=[new Ball(this.canvas.width/2, this.canvas.height-40, att)]; if(att){const m=document.getElementById('launchMessage');m.textContent=USER_SETTINGS.TEXT.launchMessage;m.classList.add('visible');} }
@@ -977,7 +977,12 @@ const STAGE2_CONFIG = {
             document.getElementById('bossHpDisplay').style.display = 'none';
 
             const c = document.getElementById('gameContainer'); c.classList.add('boss-mode'); c.classList.add('playing'); c.style.aspectRatio = '600/1000';
-            this.canvas.width = 600; this.canvas.height = 1000; document.getElementById('tutorialText').classList.add('visible');
+            this.canvas.width = 600; this.canvas.height = 1000;
+            
+            const t = document.getElementById('tutorialText');
+            t.innerHTML = "MOVE: WASD / Mouse &nbsp; SHOOT: Click / Space &nbsp; BOMB: Right Click / Shift";
+            t.classList.add('visible');
+            
             this.input = new Stage2InputHandler(this); this.player = new Stage2Player(this.canvas.width, this.canvas.height); this.boss = new Stage2Boss(this.canvas.width, this.canvas.height);
             this.bulletSystem = new BulletSystem(); this.particleSystem = new ParticleSystem(); 
             this.minions = []; this.shakeTime = 0; this.state = 'PLAYING'; this.invincibleTime = 0; this.updateUI();
